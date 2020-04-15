@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 OWM_API_KEY = os.environ["OWM_API_KEY"]
-city_id = 3413829  # temprorary
+city_id = 6324729  # temprorary
 
 
 WeatherData = namedtuple(

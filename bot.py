@@ -1,5 +1,6 @@
 import os
 import telegram
+from recommend import Recommender
 from telegram.ext import CommandHandler, Updater
 from dotenv import load_dotenv
 from parser import get_today_weather
@@ -11,10 +12,12 @@ bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 def reply_to_command(update, context, text):
     context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+    print(text)
 
 
 def get_weather(update, context):
-    reply_to_command(update, context, text=get_today_weather())
+    text = Recommender(get_today_weather()).recommend()
+    reply_to_command(update, context, text=text)
 
 
 def main():
