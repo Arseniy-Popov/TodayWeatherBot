@@ -8,6 +8,7 @@ verify_ssl = true
 [packages]
 python-dotenv = "*"
 requests = "*"
+python-telegram-bot = "*"
 
 [requires]
 python_version = "3.7"

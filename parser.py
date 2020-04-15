@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 OWM_API_KEY = os.environ["OWM_API_KEY"]
-city_id = 6065171  # temprorary; Moscow id
+city_id = 3413829  # temprorary
 
 
 WeatherData = namedtuple(
@@ -62,9 +62,8 @@ def aggregate_weather(weather_data):
     return temp_min, temp_max, rain, snow
     
 
-response = make_request()
-response = parse_weather_data(response)
-print(response)
-response = filter_today_weather_data(response)
-print(response)
-print(aggregate_weather(response))
+def get_today_weather():
+    response = make_request()
+    weather_data = parse_weather_data(response)
+    weather_data = filter_today_weather_data(weather_data)
+    return aggregate_weather(weather_data)
