@@ -23,6 +23,10 @@ def bot_reply(update, context, text):
     print(text)
 
 
+def welcome(update, context):
+    bot_reply(update, context, text="Введите город для прогноза погоды на день")
+
+
 def get_weather(update, context):
     try:
         address, lat, lng = geocode(update.message.text)
@@ -41,8 +45,8 @@ def get_weather(update, context):
 def main():
     updater = Updater(TELEGRAM_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
-    input_handler = MessageHandler(Filters.text, get_weather)
-    dispatcher.add_handler(input_handler)
+    dispatcher.add_handler(CommandHandler("start", welcome))
+    dispatcher.add_handler(MessageHandler(Filters.text, get_weather))
     # dispatcher.add_error_handler(error_callback)
     updater.start_polling()
 
