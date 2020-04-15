@@ -1,12 +1,12 @@
+import datetime as dt
 import os
 from collections import namedtuple
-import datetime as dt
+
 import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 OWM_API_KEY = os.environ["OWM_API_KEY"]
-city_id = 6324729  # temprorary
 
 
 WeatherData = namedtuple(
@@ -14,9 +14,9 @@ WeatherData = namedtuple(
 )
 
 
-def make_request():
+def make_request(lat, lng):
     URL = "https://api.openweathermap.org/data/2.5/forecast"
-    querystring = f"?id={city_id}&appid={OWM_API_KEY}&units=metric"
+    querystring = f"?lat={lat}&lon={lng}&appid={OWM_API_KEY}&units=metric"
     return requests.get(URL + querystring).json()
 
 
@@ -49,21 +49,21 @@ def populate_weather_data(weather_item, timezone):
 def filter_today_weather_data(weather_data):
     result, today = [], dt.datetime.now(tz=weather_data[0].dt_start.tzinfo)
     for item in weather_data:
-        if item.dt_start <= today.replace(day=today.day+1, hour=0): # fix!
+        if item.dt_start <= today.replace(day=today.day + 1, hour=0):
             result.append(item)
     return result
 
 
 def aggregate_weather(weather_data):
     temp_min = min(i.temp_min for i in weather_data)
-    temp_max = min(i.temp_max for i in weather_data)
+    temp_max = max(i.temp_max for i in weather_data)
     rain = any(i.rain for i in weather_data)
     snow = any(i.snow for i in weather_data)
     return temp_min, temp_max, rain, snow
-    
 
-def get_today_weather():
-    response = make_request()
+
+def get_today_weather(lat, lng):
+    response = make_request(lat, lng)
     weather_data = parse_weather_data(response)
     weather_data = filter_today_weather_data(weather_data)
     return aggregate_weather(weather_data)

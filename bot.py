@@ -1,29 +1,49 @@
+import logging
 import os
-import telegram
-from recommend import Recommender
-from telegram.ext import CommandHandler, Updater
-from dotenv import load_dotenv
 from parser import get_today_weather
+
+import telegram
+from dotenv import load_dotenv
+from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
+
+from geocoding import geocode
+from recommend import Recommender
+
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_API_TOKEN")
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 
 
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 
-def reply_to_command(update, context, text):
+def bot_reply(update, context, text):
     context.bot.send_message(chat_id=update.effective_chat.id, text=text)
     print(text)
 
 
 def get_weather(update, context):
-    text = Recommender(get_today_weather()).recommend()
-    reply_to_command(update, context, text=text)
+    try:
+        address, lat, lng = geocode(update.message.text)
+    except IndexError:
+        bot_reply(update, context, text="Не получилось найти такой город")
+        return
+    try:
+        today_weather = get_today_weather(lat, lng)
+    except Exception as e:
+        bot_reply(update, context, text="Не получилось достать прогноз погоды")
+        return
+    text = Recommender(today_weather).recommend() + "-" * 30 + f"\n{address}"
+    bot_reply(update, context, text=text)
 
 
 def main():
     updater = Updater(TELEGRAM_TOKEN, use_context=True)
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("weather", get_weather))
+    dispatcher = updater.dispatcher
+    input_handler = MessageHandler(Filters.text, get_weather)
+    dispatcher.add_handler(input_handler)
+    # dispatcher.add_error_handler(error_callback)
     updater.start_polling()
 
 

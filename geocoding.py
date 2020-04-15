@@ -1,4 +1,5 @@
 import os
+
 import requests
 from dotenv import load_dotenv
 
@@ -18,8 +19,8 @@ def parse_response(response):
     lat = result["geometry"]["location"]["lat"]
     lng = result["geometry"]["location"]["lng"]
     return address, lat, lng
-    
-
-print(parse_response(make_request("мытищи")))
 
 
+def geocode(address):
+    response = make_request(address)
+    return parse_response(response)
