@@ -49,7 +49,7 @@ def populate_weather_data(weather_item, timezone):
 def filter_today_weather_data(weather_data):
     result, today = [], dt.datetime.now(tz=weather_data[0].dt_start.tzinfo)
     for item in weather_data:
-        if item.dt_start <= today.replace(day=today.day + 1, hour=3):
+        if item.dt_start < today.replace(day=today.day + 1, hour=3):
             result.append(item)
     return result
 

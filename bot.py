@@ -35,7 +35,7 @@ def get_weather(update, context):
         return
     try:
         today_weather = get_today_weather(lat, lng)
-    except Exception as e:
+    except Exception:
         bot_reply(update, context, text="Не получилось достать прогноз погоды")
         return
     text = Recommender(today_weather).recommend() + "-" * 30 + f"\n{address}"
@@ -47,7 +47,6 @@ def main():
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", welcome))
     dispatcher.add_handler(MessageHandler(Filters.text, get_weather))
-    # dispatcher.add_error_handler(error_callback)
     updater.start_polling()
 
 
