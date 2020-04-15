@@ -25,7 +25,7 @@ class Recommender:
     def _apparel(self):
         if self.rain:
             self.result.append(f"Возьми зонт! \n")
-    
+
     def recommend(self):
         self._temparature_range()
         self._rain_snow()
