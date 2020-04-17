@@ -18,7 +18,7 @@ bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 def bot_reply(update, context, text):
     context.bot.send_message(chat_id=update.effective_chat.id, text=text)
-    print(text)
+    logging.info(text)
 
 
 def welcome(update, context):
