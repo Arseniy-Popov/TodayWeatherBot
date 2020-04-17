@@ -22,7 +22,11 @@ def bot_reply(update, context, text):
 
 
 def welcome(update, context):
-    bot_reply(update, context, text="Введите город для прогноза погоды на день")
+    bot_reply(
+        update,
+        context,
+        text="Введите город на любом языке (и опционально страну) для прогноза погоды на день",
+    )
 
 
 def get_weather(update, context):
