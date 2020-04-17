@@ -10,9 +10,7 @@ from geocoding import geocode
 from recommend import Recommender
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_API_TOKEN")
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+logging.basicConfig(level=logging.INFO)
 
 
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
@@ -28,6 +26,7 @@ def welcome(update, context):
 
 
 def get_weather(update, context):
+    logging.info(f"{update.message.from_user.username} {update.message.text}")
     try:
         address, lat, lng = geocode(update.message.text)
     except IndexError:
