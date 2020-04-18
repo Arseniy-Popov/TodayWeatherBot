@@ -1,6 +1,6 @@
 import logging
 import os
-from parser import get_today_weather
+from parser import OWMParser
 
 import telegram
 from dotenv import load_dotenv
@@ -9,11 +9,9 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 from geocoding import geocode
 from recommend import Recommender
 
+
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_API_TOKEN")
 logging.basicConfig(level=logging.INFO)
-
-
-bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 
 def bot_reply(update, context, text):
@@ -37,10 +35,10 @@ def get_weather(update, context):
         bot_reply(update, context, text="Не получилось найти такой город")
         return
     try:
-        today_weather = get_today_weather(lat, lng)
+        today_weather = OWMParser().get_today_weather(lat, lng)
     except Exception:
         bot_reply(update, context, text="Не получилось достать прогноз погоды")
-        return
+        raise Exception
     text = Recommender(today_weather).recommend() + "-" * 30 + f"\n{address}"
     bot_reply(update, context, text=text)
 

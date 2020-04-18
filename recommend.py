@@ -1,6 +1,3 @@
-from parser import get_today_weather
-
-
 class Recommender:
     def __init__(self, aggregate_weather):
         self.temp_min, self.temp_max, self.rain, self.snow = aggregate_weather
