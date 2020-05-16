@@ -5,11 +5,11 @@ import os
 from dotenv import load_dotenv
 from telegram import InlineKeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import (
+    CallbackQueryHandler,
     CommandHandler,
     Filters,
     MessageHandler,
     Updater,
-    CallbackQueryHandler,
 )
 
 from geocoding import geocode
@@ -28,20 +28,20 @@ def welcome_handler(update, context):
 
 
 def keyboard(update, context):
-    default_city = context.user_data.get("default_city", None)
-    keyboard = [
-        ["Repeat"],
-        ["Set as default city"],
-    ]
-    if default_city is not None:
-        keyboard.append([f"Default: {default_city.text}"])
+    default_address = context.user_data.get("default_address", None)
+    keyboard = [["Repeat"], ["Set as default address"]]
+    if default_address is not None:
+        keyboard.append([f"Default: {default_address}"])
+    else:
+        keyboard.append([f"Default: set it first"])
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 
 def get_weather(update, context, message):
-    logging.info(f"{message.from_user.username} {message.text}")
     try:
         address, lat, lng = geocode(message.text)
+    except AttributeError:
+        address, lat, lng = geocode(message)
     except IndexError:
         message.reply_text(text=config["ERROR"]["GEOCODING"])
         return
@@ -51,20 +51,18 @@ def get_weather(update, context, message):
         message.reply_text(text=config["ERROR"]["OWM_REQUEST"])
         raise Exception
     text = Recommender(today_weather).recommend() + "-" * 30 + f"\n{address}"
-    message.reply_text(
-        text=text, reply_markup=keyboard(update, context)
-    )
-    context.user_data["latest_message"] = message
-    
+    update.message.reply_text(text=text, reply_markup=keyboard(update, context))
+    context.user_data["latest_address"] = address
+
 
 def input_handler(update, context):
-    default_city = context.user_data.get("default_city", None)
     if update.message.text == "Repeat":
-        get_weather(update, context, message=context.user_data["latest_message"])
-    elif update.message.text == "Set as default city":
-        context.user_data["default_city"] = update.message    
+        get_weather(update, context, message=context.user_data["latest_address"])
+    elif update.message.text == "Set as default address":
+        context.user_data["default_address"] = context.user_data["latest_address"]
+        update.message.reply_text(text=f"Set {context.user_data['default_address']} as default", reply_markup=keyboard(update, context))
     elif "Default" in update.message.text:
-        get_weather(update, context, message=context.user_data["default_city"])
+        get_weather(update, context, message=context.user_data["default_address"])
     else:
         get_weather(update, context, message=update.message)
 
