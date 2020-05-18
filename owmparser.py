@@ -3,7 +3,6 @@ import os
 from collections import namedtuple
 
 import requests
-
 from dotenv import load_dotenv
 
 load_dotenv()
