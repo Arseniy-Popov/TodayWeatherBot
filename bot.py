@@ -18,7 +18,7 @@ CONFIG = configparser.ConfigParser()
 CONFIG.read("config.ini")
 
 
-class BaseHandler(ABC):
+class HandlerBase(ABC):
     def __init__(self, update, context):
         self.update = update
         self.context = context
@@ -32,12 +32,12 @@ class BaseHandler(ABC):
         self.update.message.reply_text(**kwargs)
 
 
-class HandlerWelcome(BaseHandler):
+class HandlerWelcome(HandlerBase):
     def process(self):
         self.reply(text=CONFIG["MESSAGES"]["WELCOME"])
 
 
-class HandlerInput(BaseHandler):
+class HandlerInput(HandlerBase):
     def process(self):
         user_message = self.update.message.text
         if user_message == "Repeat":
@@ -80,8 +80,6 @@ class HandlerInput(BaseHandler):
         keyboard = [["Repeat"], ["Set as default address"]]
         if self.default_address is not None:
             keyboard.append([f"Default: {self.default_address}"])
-        else:
-            keyboard.append([f"Default: set it first"])
         return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
     @property
