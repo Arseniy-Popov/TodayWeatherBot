@@ -1,21 +1,18 @@
-import configparser
 import logging
-import os
 from abc import ABC, abstractmethod
 
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
+from config import TELEGRAM_TOKEN, CONFIG
 from geocoding import geocode
 from owmparser import OWMParser
 from recommend import Recommender
+from db import get_latest_address
 
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_API_TOKEN")
 logging.basicConfig(level=logging.INFO)
-CONFIG = configparser.ConfigParser()
-CONFIG.read("config.ini")
 
 
 class HandlerBase(ABC):
@@ -89,10 +86,12 @@ class HandlerInput(HandlerBase):
     @default_address.setter
     def default_address(self, address):
         self.context.user_data["default_address"] = address
+        # set_default_address(user_id=self.update.message.from_user.id, address=address)
 
     @property
     def latest_address(self):
-        return self.context.user_data.get("latest_address", None)
+        # return self.context.user_data.get("latest_address", None)
+        get_latest_address(user_id=self.update.message.from_user.id)
 
     @latest_address.setter
     def latest_address(self, address):

@@ -9,6 +9,8 @@ verify_ssl = true
 python-dotenv = "*"
 requests = "*"
 python-telegram-bot = "*"
+psycopg2 = "*"
+sqlalchemy = "*"
 
 [requires]
 python_version = "3.7"
