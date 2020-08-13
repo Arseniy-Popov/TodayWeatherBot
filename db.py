@@ -22,8 +22,26 @@ session = Session()
 Base.metadata.create_all(engine)
 
 
-def get_latest_address(user_id):
-    user = session.query(User).filter(User.id == user_id).one_or_none()
+def get_user(user_id):
+    return session.query(User).filter(User.id == user_id).one_or_none()
+
+
+def create_user(**kwargs):
+    return User(**kwargs)
+
+
+def get_user_attr(user_id, attr):
+    user = get_user(user_id)
     if user is None:
         return None
-    return user.latest_address
+    return getattr(user, attr)
+
+
+def set_user_attr(user_id, attr, value):
+    user = get_user(user_id)
+    if user is None:
+        user = create_user(**{id: user_id, attr: value})
+        session.add(user)
+        session.commit()
+    else:
+        setattr(user, attr, value)

@@ -9,7 +9,7 @@ from config import TELEGRAM_TOKEN, CONFIG
 from geocoding import geocode
 from owmparser import OWMParser
 from recommend import Recommender
-from db import get_latest_address
+from db import get_user_attr, set_user_attr
 
 
 logging.basicConfig(level=logging.INFO)
@@ -91,11 +91,18 @@ class HandlerInput(HandlerBase):
     @property
     def latest_address(self):
         # return self.context.user_data.get("latest_address", None)
-        get_latest_address(user_id=self.update.message.from_user.id)
+        return get_user_attr(
+            user_id=self.update.message.from_user.id, attr="latest_address"
+        )
 
     @latest_address.setter
     def latest_address(self, address):
-        self.context.user_data["latest_address"] = address
+        # self.context.user_data["latest_address"] = address
+        set_user_attr(
+            user_id=self.update.message.from_user.id,
+            attr="latest_address",
+            value=address,
+        )
 
 
 if __name__ == "__main__":
