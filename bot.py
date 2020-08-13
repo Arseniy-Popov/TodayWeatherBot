@@ -81,23 +81,26 @@ class HandlerInput(HandlerBase):
 
     @property
     def default_address(self):
-        return self.context.user_data.get("default_address", None)
+        return get_user_attr(
+            user_id=self.update.message.from_user.id, attr="default_address"
+        )
 
     @default_address.setter
     def default_address(self, address):
-        self.context.user_data["default_address"] = address
-        # set_default_address(user_id=self.update.message.from_user.id, address=address)
+        set_user_attr(
+            user_id=self.update.message.from_user.id,
+            attr="default_address",
+            value=address,
+        )
 
     @property
     def latest_address(self):
-        # return self.context.user_data.get("latest_address", None)
         return get_user_attr(
             user_id=self.update.message.from_user.id, attr="latest_address"
         )
 
     @latest_address.setter
     def latest_address(self, address):
-        # self.context.user_data["latest_address"] = address
         set_user_attr(
             user_id=self.update.message.from_user.id,
             attr="latest_address",

@@ -1,19 +1,8 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 
 from config import DATABASE_URI
-
-
-Base = declarative_base()
-
-
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True)
-    default_address = Column(String)
-    latest_address = Column(String)
+from models import Base, User
 
 
 engine = create_engine(DATABASE_URI, echo=True)
@@ -42,6 +31,7 @@ def set_user_attr(user_id, attr, value):
     if user is None:
         user = create_user(**{id: user_id, attr: value})
         session.add(user)
-        session.commit()
     else:
         setattr(user, attr, value)
+    session.commit()
+        
