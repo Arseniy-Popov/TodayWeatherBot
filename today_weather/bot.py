@@ -1,14 +1,14 @@
 import logging
 from abc import ABC, abstractmethod
 
-from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
-from config import TELEGRAM_TOKEN, CONFIG
-from geocoding import geocode
-from owmparser import OWMParser
-from recommend import Recommender
+import config
+from config import CONFIG
+from utils.geocoding import geocode
+from utils.owmparser import OWMParser
+from utils.recommend import Recommender
 from db import get_user_attr, set_user_attr
 
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         CommandHandler("start", HandlerWelcome),
         MessageHandler(Filters.text, HandlerInput),
     ]
-    updater = Updater(TELEGRAM_TOKEN, use_context=True)
+    updater = Updater(config.TELEGRAM_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
     for handler in handlers:
         dispatcher.add_handler(handler)

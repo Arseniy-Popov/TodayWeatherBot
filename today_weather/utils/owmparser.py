@@ -3,10 +3,8 @@ import os
 from collections import namedtuple
 
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
-OWM_API_KEY = os.environ["OWM_API_KEY"]
+import config
 
 
 class OWMParser:
@@ -18,7 +16,7 @@ class OWMParser:
 
     def make_request(self, lat, lng):
         URL = "https://api.openweathermap.org/data/2.5/forecast"
-        params = {"lat": lat, "lon": lng, "appid": OWM_API_KEY, "units": "metric"}
+        params = {"lat": lat, "lon": lng, "appid": config.OWM_API_KEY, "units": "metric"}
         return requests.get(URL, params=params).json()
 
     def parse_weather_data(self, response):

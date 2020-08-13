@@ -1,11 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from config import DATABASE_URI
-from models import Base, User
+import config
+from models import User, Base
 
 
-engine = create_engine(DATABASE_URI, echo=True)
+engine = create_engine(config.DATABASE_URI, echo=True)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base.metadata.create_all(engine)
@@ -34,4 +34,3 @@ def set_user_attr(user_id, attr, value):
     else:
         setattr(user, attr, value)
     session.commit()
-        

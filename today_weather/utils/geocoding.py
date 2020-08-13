@@ -1,16 +1,15 @@
 import os
 
 import requests
-from dotenv import load_dotenv
+import dotenv
 
-load_dotenv()
-GOOG_MAPS_API_KEY = os.environ["GOOG_MAPS_API_KEY"]
+import config
 
 
 def make_request(address):
     URL = "https://maps.googleapis.com/maps/api/geocode/json"
-    querystring = f"?address={address}&key={GOOG_MAPS_API_KEY}&language=ru"
-    return requests.get(URL + querystring).json()
+    params = {"address": address, "key": config.GOOG_MAPS_API_KEY, "language": "en"}
+    return requests.get(URL, params=params).json()
 
 
 def parse_response(response):
