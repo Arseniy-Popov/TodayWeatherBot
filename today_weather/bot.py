@@ -4,15 +4,11 @@ from abc import ABC, abstractmethod
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
-import config
-from config import CONFIG
-from utils.geocoding import geocode, AddressError
-from utils.owmparser import OWMParser
-from utils.recommend import Recommender
-from db import get_user_attr, set_user_attr
-
-
-logging.basicConfig(level=logging.INFO)
+from today_weather.config import CONFIG, TELEGRAM_TOKEN
+from today_weather.db import get_user_attr, set_user_attr
+from today_weather.utils.geocoding import AddressError, geocode
+from today_weather.utils.owmparser import OWMParser
+from today_weather.utils.recommend import Recommender
 
 
 class HandlerBase(ABC):
@@ -38,26 +34,26 @@ class HandlerInput(HandlerBase):
     def process(self):
         user_message = self.update.message.text
         if user_message == "Repeat":
-            self.reply_forecast(self.latest_address)
+            self._reply_forecast(self.latest_address)
         elif user_message == "Set as default address":
             self.default_address = self.latest_address
             self.reply(
                 text=f"Set {self.default_address} as default",
-                reply_markup=self.keyboard(),
+                reply_markup=self._keyboard(),
             )
         elif "Default" in user_message:
-            self.reply_forecast(self.default_address)
+            self._reply_forecast(self.default_address)
         else:
-            self.reply_forecast(user_message)
+            self._reply_forecast(user_message)
 
-    def reply_forecast(self, text):
-        address, lat, lng = self.get_address(text)
-        weather = self.get_weather(lat, lng)
+    def _reply_forecast(self, text):
+        address, lat, lng = self._get_address(text)
+        weather = self._get_weather(lat, lng)
         text = Recommender(weather).recommend() + "-" * 30 + f"\n{address}"
-        self.reply(text=text, reply_markup=self.keyboard())
+        self.reply(text=text, reply_markup=self._keyboard())
         self.latest_address = address
 
-    def get_address(self, text):
+    def _get_address(self, text):
         try:
             address, lat, lng = geocode(text)
         except AddressError:
@@ -68,7 +64,7 @@ class HandlerInput(HandlerBase):
             return
         return address, lat, lng
 
-    def get_weather(self, lat, lng):
+    def _get_weather(self, lat, lng):
         try:
             today_weather = OWMParser().get_today_weather(lat, lng)
         except Exception:
@@ -76,11 +72,11 @@ class HandlerInput(HandlerBase):
             raise Exception
         return today_weather
 
-    def keyboard(self):
-        keyboard = [["Repeat"], ["Set as default address"]]
+    def _keyboard(self):
+        _keyboard = [["Repeat"], ["Set as default address"]]
         if self.default_address is not None:
-            keyboard.append([f"Default: {self.default_address}"])
-        return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+            _keyboard.append([f"Default: {self.default_address}"])
+        return ReplyKeyboardMarkup(_keyboard, resize_keyboard=True)
 
     @property
     def default_address(self):
@@ -112,11 +108,12 @@ class HandlerInput(HandlerBase):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     handlers = [
         CommandHandler("start", HandlerWelcome),
         MessageHandler(Filters.text, HandlerInput),
     ]
-    updater = Updater(config.TELEGRAM_TOKEN, use_context=True)
+    updater = Updater(TELEGRAM_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
     for handler in handlers:
         dispatcher.add_handler(handler)

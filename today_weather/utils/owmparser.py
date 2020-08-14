@@ -4,7 +4,7 @@ from collections import namedtuple
 
 import requests
 
-import config
+from today_weather.config import OWM_API_KEY
 
 
 class OWMParser:
@@ -16,7 +16,7 @@ class OWMParser:
 
     def make_request(self, lat, lng):
         URL = "https://api.openweathermap.org/data/2.5/forecast"
-        params = {"lat": lat, "lon": lng, "appid": config.OWM_API_KEY, "units": "metric"}
+        params = {"lat": lat, "lon": lng, "appid": OWM_API_KEY, "units": "metric"}
         return requests.get(URL, params=params).json()
 
     def parse_weather_data(self, response):

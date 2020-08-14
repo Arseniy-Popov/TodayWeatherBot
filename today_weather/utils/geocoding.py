@@ -1,9 +1,9 @@
 import os
 
-import requests
 import dotenv
+import requests
 
-import config
+from today_weather.config import GOOG_MAPS_API_KEY
 
 
 class AddressError(Exception):
@@ -15,7 +15,7 @@ class AddressError(Exception):
     
 def make_request(address):
     URL = "https://maps.googleapis.com/maps/api/geocode/json"
-    params = {"address": address, "key": config.GOOG_MAPS_API_KEY, "language": "en"}
+    params = {"address": address, "key": GOOG_MAPS_API_KEY, "language": "en"}
     return requests.get(URL, params=params).json()
 
 
