@@ -6,6 +6,13 @@ import dotenv
 import config
 
 
+class AddressError(Exception):
+    """
+    Address not a locality.
+    """
+    pass
+    
+    
 def make_request(address):
     URL = "https://maps.googleapis.com/maps/api/geocode/json"
     params = {"address": address, "key": config.GOOG_MAPS_API_KEY, "language": "en"}
@@ -13,12 +20,18 @@ def make_request(address):
 
 
 def parse_response(response):
-    result = response["results"][0]
-    address = result["formatted_address"]
-    lat = result["geometry"]["location"]["lat"]
-    lng = result["geometry"]["location"]["lng"]
+    response_results = response["results"][0]
+    check_response(response_results)
+    address = response_results["formatted_address"]
+    lat = response_results["geometry"]["location"]["lat"]
+    lng = response_results["geometry"]["location"]["lng"]
     return address, lat, lng
 
+
+def check_response(result):
+    types = result["types"]
+    if "locality" not in types:
+        raise AddressError()
 
 def geocode(address):
     response = make_request(address)

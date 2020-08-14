@@ -6,7 +6,7 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
 import config
 from config import CONFIG
-from utils.geocoding import geocode
+from utils.geocoding import geocode, AddressError
 from utils.owmparser import OWMParser
 from utils.recommend import Recommender
 from db import get_user_attr, set_user_attr
@@ -60,8 +60,11 @@ class HandlerInput(HandlerBase):
     def get_address(self, text):
         try:
             address, lat, lng = geocode(text)
-        except IndexError:
-            self.reply(text=CONFIG["ERROR"]["GEOCODING"])
+        except AddressError:
+            self.reply(text=CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
+            return
+        except Exception:
+            self.reply(text=CONFIG["ERROR"]["GEOCODING_GENERAL"])
             return
         return address, lat, lng
 
@@ -69,7 +72,7 @@ class HandlerInput(HandlerBase):
         try:
             today_weather = OWMParser().get_today_weather(lat, lng)
         except Exception:
-            self.reply(text=CONFIG["ERROR"]["OWM_REQUEST"])
+            self.reply(text=CONFIG["ERROR"]["OWM_GENERAL"])
             raise Exception
         return today_weather
 

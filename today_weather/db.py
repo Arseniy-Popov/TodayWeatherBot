@@ -5,7 +5,7 @@ import config
 from models import User, Base
 
 
-engine = create_engine(config.DATABASE_URI, echo=True)
+engine = create_engine(config.DATABASE_URI)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base.metadata.create_all(engine)
