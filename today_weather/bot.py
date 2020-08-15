@@ -33,12 +33,12 @@ class HandlerWelcome(HandlerBase):
 class HandlerInput(HandlerBase):
     def process(self):
         user_message = self.update.message.text
-        if user_message == "Repeat":
+        if user_message == CONFIG["KEYBOARD"]["REPEAT"]:
             self._reply_forecast(self.latest_address)
-        elif user_message == "Set as default address":
+        elif user_message == CONFIG["KEYBOARD"]["SET_DEFAULT"]:
             self.default_address = self.latest_address
             self.reply(
-                text=f"Set {self.default_address} as default",
+                text=self.default_address + f" has been set as default",
                 reply_markup=self._keyboard(),
             )
         elif "Default" in user_message:
@@ -73,7 +73,10 @@ class HandlerInput(HandlerBase):
         return today_weather
 
     def _keyboard(self):
-        _keyboard = [["Repeat"], ["Set as default address"]]
+        _keyboard = [
+            [CONFIG["KEYBOARD"]["REPEAT"]],
+            [CONFIG["KEYBOARD"]["SET_DEFAULT"]],
+        ]
         if self.default_address is not None:
             _keyboard.append([f"Default: {self.default_address}"])
         return ReplyKeyboardMarkup(_keyboard, resize_keyboard=True)

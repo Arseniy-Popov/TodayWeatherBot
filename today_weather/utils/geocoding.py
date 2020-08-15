@@ -10,9 +10,10 @@ class AddressError(Exception):
     """
     Address not a locality.
     """
+
     pass
-    
-    
+
+
 def make_request(address):
     URL = "https://maps.googleapis.com/maps/api/geocode/json"
     params = {"address": address, "key": GOOG_MAPS_API_KEY, "language": "en"}
@@ -32,6 +33,7 @@ def check_response(result):
     types = result["types"]
     if "locality" not in types:
         raise AddressError()
+
 
 def geocode(address):
     response = make_request(address)
