@@ -39,9 +39,15 @@ class TestTodayWeather(unittest.TestCase):
             pass
         self.__class__.last_response = self.response
 
-    def _assertKeyboardContains(self, response, *messages):
+    def _assertResponseContains(self, *items):
+        return all(item in self.response.text for item in items)
+
+    def _assertResponseEquals(self, item):
+        return self.response.text == item
+
+    def _assertKeyboardContains(self, *messages):
         return all(
-            [message] in response.reply_markup["keyboard"] for message in messages
+            [message] in self.response.reply_markup["keyboard"] for message in messages
         )
 
     def test_welcome(self):
@@ -50,48 +56,42 @@ class TestTodayWeather(unittest.TestCase):
         self.assertEqual(self.response.text, CONFIG["MESSAGES"]["WELCOME"])
 
     def test_address(self, address="New York"):
+        self.address = address
         self.app.send_message(self.bot, address)
         self._await_response()
-        self.assertEqual("\u00B0C" in self.response.text, True)
-        self.assertEqual(address in self.response.text, True)
+        self._assertResponseContains("\u00B0C", self.address)
         self._assertKeyboardContains(
-            self.response,
-            CONFIG["KEYBOARD"]["SET_DEFAULT"],
-            CONFIG["KEYBOARD"]["SET_DEFAULT"],
+            CONFIG["KEYBOARD"]["SET_DEFAULT"], CONFIG["KEYBOARD"]["SET_DEFAULT"]
         )
 
     def test_address_wrong(self):
         with self.subTest("narrow"):
             self.app.send_message(self.bot, "Times Square")
             self._await_response()
-            self.assertEqual(
-                self.response.text, CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"]
-            )
+            self._assertResponseEquals(CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
         with self.subTest("wide"):
             self.app.send_message(self.bot, "USA")
             self._await_response()
-            self.assertEqual(
-                self.response.text, CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"]
-            )
+            self._assertResponseEquals(CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
 
     def test_repeat(self):
         self.test_address()
         self.app.send_message(self.bot, CONFIG["KEYBOARD"]["REPEAT"])
         self._await_response()
-        self.assertEqual("\u00B0C" in self.response.text, True)
-        self.assertEqual("New York" in self.response.text, True)
+        self._assertResponseContains("\u00B0C", self.address)
 
-    def test_set_default(self):
-        self.test_address("Moscow")
+    def test_set_default(self, address="Moscow"):
+        self.default_address = address
+        self.test_address(self.default_address)
         self.app.send_message(self.bot, CONFIG["KEYBOARD"]["SET_DEFAULT"])
         self._await_response()
-        self.assertEqual(
-            CONFIG["MESSAGES"]["SET_DEFAULT_CONF"] in self.response.text, True
-        )
+        self._assertResponseEquals(CONFIG["MESSAGES"]["SET_DEFAULT_CONF"])
 
-    # def test_get_default(self):
-    #     self.test_set_default()
-    #     self.app.send_message(self.bot, CONFIG["KEYBOARD"]["SET_DEFAULT"])
+    def test_get_default(self):
+        self.test_set_default()
+        self.app.send_message(self.bot, CONFIG["KEYBOARD"]["GET_DEFAULT"])
+        self._await_response()
+        self._assertResponseContains("\u00B0C", self.address)
 
 
 if __name__ == "__main__":

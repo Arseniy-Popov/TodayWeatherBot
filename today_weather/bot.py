@@ -41,7 +41,7 @@ class HandlerInput(HandlerBase):
                 text=self.default_address + f" has been set as default",
                 reply_markup=self._keyboard(),
             )
-        elif "Default" in user_message:
+        elif CONFIG["KEYBOARD"]["GET_DEFAULT"] in user_message:
             self._reply_forecast(self.default_address)
         else:
             self._reply_forecast(user_message)
