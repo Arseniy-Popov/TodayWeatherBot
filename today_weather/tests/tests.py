@@ -2,6 +2,7 @@ import unittest
 import subprocess
 import os
 import signal
+import psutil
 
 from pyrogram import Client, MessageHandler
 
@@ -13,6 +14,9 @@ class Empty:
 
 
 class TestTodayWeather(unittest.TestCase):
+
+    # Class-level set-up and tear-down
+
     @classmethod
     def setUpClass(cls):
         cls.bot = CONFIG["BOTS"]["TEST_BOT_USERNAME"]
@@ -26,31 +30,33 @@ class TestTodayWeather(unittest.TestCase):
     def tearDownClass(cls):
         cls.app.stop()
 
-    def setUp(self):
-        self.subprocess = subprocess.Popen(
-            "pipenv run python -m today_weather.bot",
-            cwd="/home/ubuntu/environment/Praktikum/TodayWeather",
-            stdout=subprocess.PIPE,
-            shell=True,
-            preexec_fn=os.setsid,
-        )
+    # Method-level set-up and tear-down
 
+    def setUp(self):
         def register_response(client, message):
             self.response = message
 
         self.register_response_handler = MessageHandler(register_response)
         self.app.add_handler(self.register_response_handler)
         self.response = Empty
+        self.subprocess = subprocess.Popen(
+            "pipenv run python -m today_weather.bot",
+            cwd="/home/ubuntu/environment/Praktikum/TodayWeather",
+            shell=True,
+            preexec_fn=os.setsid,
+        )
 
     def tearDown(self):
+        def kill(proc_pid):
+            process = psutil.Process(proc_pid)
+            for proc in process.children(recursive=True):
+                proc.kill()
+            process.kill()
+
         self.app.remove_handler(self.register_response_handler)
-        id = os.getpgid(self.subprocess.pid)
-        os.killpg(id, signal.SIGTERM)
-        while True:
-            try:
-                os.waitpid(id, 0)
-            except OSError:
-                break
+        kill(os.getpgid(self.subprocess.pid))
+
+    # Utilities
 
     def _await_response(self):
         while self.response == Empty or self.response == self.__class__.last_response:
@@ -67,6 +73,8 @@ class TestTodayWeather(unittest.TestCase):
         return all(
             [message] in self.response.reply_markup["keyboard"] for message in messages
         )
+
+    # Tests
 
     def test_welcome(self):
         self.app.send_message(self.bot, "/start")

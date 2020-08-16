@@ -12,6 +12,7 @@ python-telegram-bot = "*"
 psycopg2 = "*"
 sqlalchemy = "*"
 pyrogram = "*"
+psutil = "*"
 
 [requires]
 python_version = "3.7"
