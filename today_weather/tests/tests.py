@@ -1,4 +1,7 @@
 import unittest
+import subprocess
+import os
+import signal
 
 from pyrogram import Client, MessageHandler
 
@@ -24,6 +27,14 @@ class TestTodayWeather(unittest.TestCase):
         cls.app.stop()
 
     def setUp(self):
+        self.subprocess = subprocess.Popen(
+            "pipenv run python -m today_weather.bot",
+            cwd="/home/ubuntu/environment/Praktikum/TodayWeather",
+            stdout=subprocess.PIPE,
+            shell=True,
+            preexec_fn=os.setsid,
+        )
+
         def register_response(client, message):
             self.response = message
 
@@ -33,6 +44,13 @@ class TestTodayWeather(unittest.TestCase):
 
     def tearDown(self):
         self.app.remove_handler(self.register_response_handler)
+        id = os.getpgid(self.subprocess.pid)
+        os.killpg(id, signal.SIGTERM)
+        while True:
+            try:
+                os.waitpid(id, 0)
+            except OSError:
+                break
 
     def _await_response(self):
         while self.response == Empty or self.response == self.__class__.last_response:
@@ -89,9 +107,10 @@ class TestTodayWeather(unittest.TestCase):
 
     def test_get_default(self):
         self.test_set_default()
+        self.test_address()
         self.app.send_message(self.bot, CONFIG["KEYBOARD"]["GET_DEFAULT"])
         self._await_response()
-        self._assertResponseContains("\u00B0C", self.address)
+        self._assertResponseContains("\u00B0C", self.default_address)
 
 
 if __name__ == "__main__":
