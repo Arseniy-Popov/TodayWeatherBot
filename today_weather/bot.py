@@ -47,7 +47,10 @@ class HandlerInput(HandlerBase):
             self._reply_forecast(user_message)
 
     def _reply_forecast(self, text):
-        address, lat, lng = self._get_address(text)
+        try:
+            address, lat, lng = self._get_address(text)
+        except Exception:
+            return
         weather = self._get_weather(lat, lng)
         text = Recommender(weather).recommend() + "-" * 30 + f"\n{address}"
         self.reply(text=text, reply_markup=self._keyboard())
@@ -56,13 +59,13 @@ class HandlerInput(HandlerBase):
     def _get_address(self, text):
         try:
             address, lat, lng = geocode(text)
-        except AddressError:
+            return address, lat, lng
+        except AddressError as e:
             self.reply(text=CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
-            return
-        except Exception:
+            raise e
+        except Exception as e:
             self.reply(text=CONFIG["ERROR"]["GEOCODING_GENERAL"])
-            return
-        return address, lat, lng
+            raise e
 
     def _get_weather(self, lat, lng):
         try:

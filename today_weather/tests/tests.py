@@ -1,12 +1,11 @@
-import unittest
-import subprocess
 import os
-import signal
-import psutil
+import subprocess
+import unittest
 
+import psutil
 from pyrogram import Client, MessageHandler
 
-from today_weather.config import TELEGRAM_APP_API_HASH, TELEGRAM_APP_API_ID, CONFIG
+from today_weather.config import CONFIG, TELEGRAM_APP_API_HASH, TELEGRAM_APP_API_ID
 
 
 class Empty:
@@ -15,7 +14,7 @@ class Empty:
 
 class TestTodayWeather(unittest.TestCase):
 
-    # Class-level set-up and tear-down
+    # Class-level set-up and tear-down -------------------------------------------------
 
     @classmethod
     def setUpClass(cls):
@@ -30,7 +29,7 @@ class TestTodayWeather(unittest.TestCase):
     def tearDownClass(cls):
         cls.app.stop()
 
-    # Method-level set-up and tear-down
+    # Method-level set-up and tear-down ------------------------------------------------
 
     def setUp(self):
         def register_response(client, message):
@@ -56,7 +55,7 @@ class TestTodayWeather(unittest.TestCase):
         self.app.remove_handler(self.register_response_handler)
         kill(os.getpgid(self.subprocess.pid))
 
-    # Utilities
+    # Utilities ------------------------------------------------------------------------
 
     def _await_response(self):
         while self.response == Empty or self.response == self.__class__.last_response:
@@ -74,7 +73,7 @@ class TestTodayWeather(unittest.TestCase):
             [message] in self.response.reply_markup["keyboard"] for message in messages
         )
 
-    # Tests
+    # Tests ----------------------------------------------------------------------------
 
     def test_welcome(self):
         self.app.send_message(self.bot, "/start")
