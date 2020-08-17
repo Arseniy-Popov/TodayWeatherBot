@@ -1,4 +1,5 @@
 import os
+import shlex
 import subprocess
 import unittest
 
@@ -32,6 +33,10 @@ class TestTodayWeather(unittest.TestCase):
     # Method-level set-up and tear-down ------------------------------------------------
 
     def setUp(self):
+        """
+        The bot is restarted between each test to test for data persistence. 
+        """
+
         def register_response(client, message):
             self.response = message
 
@@ -39,21 +44,15 @@ class TestTodayWeather(unittest.TestCase):
         self.app.add_handler(self.register_response_handler)
         self.response = Empty
         self.subprocess = subprocess.Popen(
-            "pipenv run python -m today_weather.bot",
-            cwd="/home/ubuntu/environment/Praktikum/TodayWeather",
-            shell=True,
+            shlex.split("pipenv run python -m today_weather.bot"),
+            cwd=os.getcwd(),
             preexec_fn=os.setsid,
         )
 
     def tearDown(self):
-        def kill(proc_pid):
-            process = psutil.Process(proc_pid)
-            for proc in process.children(recursive=True):
-                proc.kill()
-            process.kill()
-
         self.app.remove_handler(self.register_response_handler)
-        kill(os.getpgid(self.subprocess.pid))
+        self.subprocess.kill()
+        self.subprocess.wait()
 
     # Utilities ------------------------------------------------------------------------
 
