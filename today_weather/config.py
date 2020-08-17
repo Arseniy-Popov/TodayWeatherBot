@@ -27,5 +27,8 @@ GOOG_MAPS_API_KEY = os.environ["GOOG_MAPS_API_KEY"]
 OWM_API_KEY = os.environ["OWM_API_KEY"]
 
 # Testing
-TELEGRAM_APP_API_ID = os.environ["TELEGRAM_APP_API_ID"]
-TELEGRAM_APP_API_HASH = os.environ["TELEGRAM_APP_API_HASH"]
+try:
+    TELEGRAM_APP_API_ID = os.environ["TELEGRAM_APP_API_ID"]
+    TELEGRAM_APP_API_HASH = os.environ["TELEGRAM_APP_API_HASH"]
+except:
+    pass
