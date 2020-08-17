@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from today_weather.config import DATABASE_URI
 from today_weather.models import Base, User
 
+
 engine = create_engine(DATABASE_URI)
 Session = sessionmaker(bind=engine)
 session = Session()
