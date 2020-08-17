@@ -4,7 +4,7 @@ import subprocess
 import unittest
 
 import psutil
-from pyrogram import Client, MessageHandler
+from pyrogram import Client, MessageHandler, Filters
 
 from today_weather.config import CONFIG, TELEGRAM_APP_API_HASH, TELEGRAM_APP_API_ID
 
@@ -40,7 +40,9 @@ class TestTodayWeather(unittest.TestCase):
         def register_response(client, message):
             self.response = message
 
-        self.register_response_handler = MessageHandler(register_response)
+        self.register_response_handler = MessageHandler(
+            register_response, filters=Filters.user(self.bot)
+        )
         self.app.add_handler(self.register_response_handler)
         self.response = Empty
         self.subprocess = subprocess.Popen(

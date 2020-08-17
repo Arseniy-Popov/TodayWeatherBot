@@ -14,8 +14,8 @@ def get_user(user_id):
     return session.query(User).filter(User.id == user_id).one_or_none()
 
 
-def create_user(**kwargs):
-    return User(**kwargs)
+def create_user(user_id, **kwargs):
+    return User(id=user_id, **kwargs)
 
 
 def get_user_attr(user_id, attr):
@@ -28,7 +28,7 @@ def get_user_attr(user_id, attr):
 def set_user_attr(user_id, attr, value):
     user = get_user(user_id)
     if user is None:
-        user = create_user(**{id: user_id, attr: value})
+        user = create_user(user_id, **{attr: value})
         session.add(user)
     else:
         setattr(user, attr, value)
