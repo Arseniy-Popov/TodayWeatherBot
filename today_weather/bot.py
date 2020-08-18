@@ -6,6 +6,7 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
 from today_weather.config import CONFIG, TELEGRAM_TOKEN
 from today_weather.db import get_user_attr, set_user_attr
+from today_weather.db import Locality
 from today_weather.utils.geocoding import AddressError, geocode
 from today_weather.utils.owmparser import OWMParser
 from today_weather.utils.recommend import Recommender
@@ -34,32 +35,34 @@ class HandlerInput(HandlerBase):
     def process(self):
         user_message = self.update.message.text
         if user_message == CONFIG["KEYBOARD"]["REPEAT"]:
-            self._reply_forecast(self.latest_address)
+            self._reply_with_forecast(self.latest_locality)
         elif user_message == CONFIG["KEYBOARD"]["SET_DEFAULT"]:
-            self.default_address = self.latest_address
+            self.default_address = self.latest_locality
             self.reply(
                 text=self.default_address + f" has been set as default",
                 reply_markup=self._keyboard(),
             )
         elif CONFIG["KEYBOARD"]["GET_DEFAULT"] in user_message:
-            self._reply_forecast(self.default_address)
+            self._reply_with_forecast(self.default_address)
         else:
-            self._reply_forecast(user_message)
+            self._reply_with_forecast(user_message)
 
-    def _reply_forecast(self, text):
+    def _reply_with_forecast(self, input):
         try:
-            address, lat, lng = self._get_address(text)
+            locality = (
+                input if isinstance(input, Locality) else self._get_locality(input)
+            )
+            weather = self._get_weather(locality)
         except Exception:
             return
-        weather = self._get_weather(lat, lng)
-        text = Recommender(weather).recommend() + "-" * 30 + f"\n{address}"
+        text = Recommender(weather).recommend() + "-" * 30 + f"\n{locality.name}"
         self.reply(text=text, reply_markup=self._keyboard())
-        self.latest_address = address
+        self.latest_locality = locality
 
-    def _get_address(self, text):
+    def _get_locality(self, input):
         try:
-            address, lat, lng = geocode(text)
-            return address, lat, lng
+            address, lat, lng = geocode(input)
+            return Locality(address, lat, lng)
         except AddressError as e:
             self.reply(text=CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
             raise e
@@ -67,13 +70,13 @@ class HandlerInput(HandlerBase):
             self.reply(text=CONFIG["ERROR"]["GEOCODING_GENERAL"])
             raise e
 
-    def _get_weather(self, lat, lng):
+    def _get_weather(self, locality):
         try:
-            today_weather = OWMParser().get_today_weather(lat, lng)
+            today_weather = OWMParser().get_today_weather(locality.lat, locality.lng)
+            return today_weather
         except Exception:
             self.reply(text=CONFIG["ERROR"]["OWM_GENERAL"])
             raise Exception
-        return today_weather
 
     def _keyboard(self):
         _keyboard = [
@@ -85,31 +88,31 @@ class HandlerInput(HandlerBase):
         return ReplyKeyboardMarkup(_keyboard, resize_keyboard=True)
 
     @property
-    def default_address(self):
+    def default_locality(self):
         return get_user_attr(
-            user_id=self.update.message.from_user.id, attr="default_address"
+            user_id=self.update.message.from_user.id, attr="default_locality"
         )
 
-    @default_address.setter
-    def default_address(self, address):
+    @default_locality.setter
+    def default_locality(self, locality):
         set_user_attr(
             user_id=self.update.message.from_user.id,
-            attr="default_address",
-            value=address,
+            attr="default_locality",
+            value=locality,
         )
 
     @property
-    def latest_address(self):
+    def latest_locality(self):
         return get_user_attr(
-            user_id=self.update.message.from_user.id, attr="latest_address"
+            user_id=self.update.message.from_user.id, attr="latest_locality"
         )
 
-    @latest_address.setter
-    def latest_address(self, address):
+    @latest_locality.setter
+    def latest_locality(self, locality):
         set_user_attr(
             user_id=self.update.message.from_user.id,
-            attr="latest_address",
-            value=address,
+            attr="latest_locality",
+            value=locality,
         )
 
 

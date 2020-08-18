@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from today_weather.config import DATABASE_URI
-from today_weather.models import Base, User
+from today_weather.models import Base, User, AddressInput, Locality
 
 
 engine = create_engine(DATABASE_URI)
@@ -32,5 +32,7 @@ def set_user_attr(user_id, attr, value):
         user = create_user(user_id, **{attr: value})
         session.add(user)
     else:
+        if isinstance(value, Base):
+            session.add(value)
         setattr(user, attr, value)
     session.commit()

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey, relationship, Float
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -8,5 +8,32 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
-    default_address = Column(String)
-    latest_address = Column(String)
+    default_locality_id = Column(Integer, ForeignKey("localities.id"))
+    default_locality = relationship("Locality")
+    latest_locality_id = Column(Integer, ForeignKey("localities.id"))
+    latest_locality = relationship("Locality")
+
+    def __repr__(self):
+        return f"<User: {self.id}>"
+
+
+class AddressInput(Base):
+    __tablename__ = "address_inputs"
+    id = Column(Integer, primary_key=True)
+    input = Column(String)
+    locality_id = Column(Integer, ForeignKey("localities.id"))
+    locality = relationship("Locality")
+
+    def __repr__(self):
+        return f"<AddressInput: from {self.input} to {self.locality.name}>"
+
+
+class Locality(Base):
+    __tablename__ = "localities"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    lat = Column(Float)
+    lng = Column(Float)
+
+    def __repr__(self):
+        return f"<Locality: {self.name}>"
