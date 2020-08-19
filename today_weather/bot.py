@@ -5,8 +5,8 @@ from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
 from today_weather.config import CONFIG, TELEGRAM_TOKEN
-from today_weather.db import get_user_attr, set_user_attr
-from today_weather.db import Locality
+from today_weather.db import get_user_attr, set_user_attr, write_to_db
+from today_weather.models import AddressInput, Locality
 from today_weather.utils.misc import log_reply
 from today_weather.utils.geocoding import AddressError, geocode
 from today_weather.utils.owmparser import OWMParser
@@ -72,7 +72,9 @@ class HandlerInput(HandlerBase):
         except Exception as e:
             self.reply(text=CONFIG["ERROR"]["GEOCODING_GENERAL"])
             raise e
-        return Locality(name=address, lat=lat, lng=lng)
+        locality = Locality(name=address, lat=lat, lng=lng) #get or create
+        write_to_db(AddressInput(input=input, locality=locality)) #get or create
+        return locality
 
     def _get_weather(self, locality):
         try:

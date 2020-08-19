@@ -36,3 +36,7 @@ def set_user_attr(user_id, attr, value):
             session.add(value)
         setattr(user, attr, value)
     session.commit()
+
+
+# def get_or_create(model, **kwargs):
+#     if session.query(model).filter().one_or_none()
