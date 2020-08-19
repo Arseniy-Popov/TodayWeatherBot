@@ -37,13 +37,13 @@ class HandlerInput(HandlerBase):
         if user_message == CONFIG["KEYBOARD"]["REPEAT"]:
             self._reply_with_forecast(self.latest_locality)
         elif user_message == CONFIG["KEYBOARD"]["SET_DEFAULT"]:
-            self.default_address = self.latest_locality
+            self.default_locality = self.latest_locality
             self.reply(
-                text=self.default_address + f" has been set as default",
+                text=self.default_locality + f" has been set as default",
                 reply_markup=self._keyboard(),
             )
         elif CONFIG["KEYBOARD"]["GET_DEFAULT"] in user_message:
-            self._reply_with_forecast(self.default_address)
+            self._reply_with_forecast(self.default_locality)
         else:
             self._reply_with_forecast(user_message)
 
@@ -53,38 +53,40 @@ class HandlerInput(HandlerBase):
                 input if isinstance(input, Locality) else self._get_locality(input)
             )
             weather = self._get_weather(locality)
-        except Exception:
+        except Exception as e:
+            logging.warning(e)
             return
         text = Recommender(weather).recommend() + "-" * 30 + f"\n{locality.name}"
         self.reply(text=text, reply_markup=self._keyboard())
         self.latest_locality = locality
+        breakpoint()
 
     def _get_locality(self, input):
         try:
             address, lat, lng = geocode(input)
-            return Locality(address, lat, lng)
         except AddressError as e:
             self.reply(text=CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
             raise e
         except Exception as e:
             self.reply(text=CONFIG["ERROR"]["GEOCODING_GENERAL"])
             raise e
+        return Locality(name=address, lat=lat, lng=lng)
 
     def _get_weather(self, locality):
         try:
             today_weather = OWMParser().get_today_weather(locality.lat, locality.lng)
             return today_weather
-        except Exception:
+        except Exception as e:
             self.reply(text=CONFIG["ERROR"]["OWM_GENERAL"])
-            raise Exception
+            raise e
 
     def _keyboard(self):
         _keyboard = [
             [CONFIG["KEYBOARD"]["REPEAT"]],
             [CONFIG["KEYBOARD"]["SET_DEFAULT"]],
         ]
-        if self.default_address is not None:
-            _keyboard.append([f"Default: {self.default_address}"])
+        if self.default_locality is not None:
+            _keyboard.append([f"Default: {self.default_locality}"])
         return ReplyKeyboardMarkup(_keyboard, resize_keyboard=True)
 
     @property

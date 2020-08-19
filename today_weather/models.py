@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, relationship, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 
 Base = declarative_base()
@@ -9,9 +10,9 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     default_locality_id = Column(Integer, ForeignKey("localities.id"))
-    default_locality = relationship("Locality")
+    default_locality = relationship("Locality", foreign_keys=[default_locality_id])
     latest_locality_id = Column(Integer, ForeignKey("localities.id"))
-    latest_locality = relationship("Locality")
+    latest_locality = relationship("Locality", foreign_keys=[latest_locality_id])
 
     def __repr__(self):
         return f"<User: {self.id}>"
