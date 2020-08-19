@@ -1,3 +1,4 @@
+import logging
 import os
 
 import dotenv
@@ -17,8 +18,8 @@ class AddressError(Exception):
 def make_request(address):
     URL = "https://maps.googleapis.com/maps/api/geocode/json"
     params = {"address": address, "key": GOOG_MAPS_API_KEY, "language": "en"}
+    logging.info(f"request to Geocoding API: {address}")
     return requests.get(URL, params=params).json()
-
 
 def parse_response(response):
     response_results = response["results"][0]

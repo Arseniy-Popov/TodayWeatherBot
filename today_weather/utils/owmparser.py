@@ -1,5 +1,6 @@
 import datetime as dt
 import os
+import logging
 from collections import namedtuple
 
 import requests
@@ -17,6 +18,7 @@ class OWMParser:
     def make_request(self, lat, lng):
         URL = "https://api.openweathermap.org/data/2.5/forecast"
         params = {"lat": lat, "lon": lng, "appid": OWM_API_KEY, "units": "metric"}
+        logging.info(f"request to OWM API")
         return requests.get(URL, params=params).json()
 
     def parse_weather_data(self, response):
