@@ -21,6 +21,7 @@ def make_request(address):
     logging.info(f"request to Geocoding API: {address}")
     return requests.get(URL, params=params).json()
 
+
 def parse_response(response):
     response_results = response["results"][0]
     check_response(response_results)

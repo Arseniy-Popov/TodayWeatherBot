@@ -11,30 +11,35 @@ session = Session()
 Base.metadata.create_all(engine)
 
 
-def get_user(user_id):
-    return session.query(User).filter(User.id == user_id).one_or_none()
+def get_or_none(model, field, value):
+    return session.query(model).filter(getattr(model, value) == value).one_or_none()
 
 
-def create_user(user_id, **kwargs):
-    return User(id=user_id, **kwargs)
+def create_object(model, **kwargs):
+    obj = model(**kwargs)
+    session.add(obj)
+    session.commit()
+    return obj
 
 
-def get_user_attr(user_id, attr):
-    user = get_user(user_id)
-    if user is None:
+def write(obj):
+    session.add(obj)
+    session.commit()
+
+
+def get_obj_attr(model, field, identifier, attr):
+    obj = get_or_none(model, field, identifier)
+    if obj is None:
         return None
-    return getattr(user, attr)
+    return getattr(obj, attr)
 
 
-def set_user_attr(user_id, attr, value):
-    user = get_user(user_id)
-    if user is None:
-        user = create_user(user_id, **{attr: value})
-        session.add(user)
+def set_obj_attr(model, field, identifier, attr, value):
+    obj = get_or_none(model, field, identifier)
+    if obj is None:
+        obj = create_object(model, **{field: identifier, attr: value})
     else:
-        if isinstance(value, Base):
-            session.add(value)
-        setattr(user, attr, value)
+        setattr(obj, attr, value)
     session.commit()
 
 

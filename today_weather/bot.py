@@ -5,8 +5,8 @@ from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
 from today_weather.config import CONFIG, TELEGRAM_TOKEN
-from today_weather.db import get_user_attr, set_user_attr, write_to_db
-from today_weather.models import AddressInput, Locality
+from today_weather.db import get_obj_attr, set_obj_attr, get_or_none, write
+from today_weather.models import User, AddressInput, Locality
 from today_weather.utils.misc import log_reply
 from today_weather.utils.geocoding import AddressError, geocode
 from today_weather.utils.owmparser import OWMParser
@@ -64,16 +64,21 @@ class HandlerInput(HandlerBase):
         self.latest_locality = locality
 
     def _get_locality(self, input):
-        try:
-            address, lat, lng = geocode(input)
-        except AddressError as e:
-            self.reply(text=CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
-            raise e
-        except Exception as e:
-            self.reply(text=CONFIG["ERROR"]["GEOCODING_GENERAL"])
-            raise e
-        locality = Locality(name=address, lat=lat, lng=lng) #get or create
-        write_to_db(AddressInput(input=input, locality=locality)) #get or create
+        cached_input = get_or_none(model=AddressInput, field="input", value=input)
+        if cached_input is None:
+            try:
+                address, lat, lng = geocode(input)
+            except AddressError as e:
+                self.reply(text=CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
+                raise e
+            except Exception as e:
+                self.reply(text=CONFIG["ERROR"]["GEOCODING_GENERAL"])
+                raise e
+            locality = Locality(name=address, lat=lat, lng=lng)
+            write(locality)
+            write(AddressInput(input=input, locality=locality))
+        else:
+            locality = cached_input.locality
         return locality
 
     def _get_weather(self, locality):
@@ -95,31 +100,21 @@ class HandlerInput(HandlerBase):
 
     @property
     def default_locality(self):
-        return get_user_attr(
-            user_id=self.user_id, attr="default_locality"
+        return get_obj_attr(
+            model=User, field="id", identifier=self.user_id, attr="default_locality"
         )
 
     @default_locality.setter
     def default_locality(self, locality):
-        set_user_attr(
-            user_id=self.user_id,
-            attr="default_locality",
-            value=locality,
-        )
+        set_obj_attr(model=User, field="id", identifier=self.user_id, attr="default_locality", value=locality)
 
     @property
     def latest_locality(self):
-        return get_user_attr(
-            user_id=self.user_id, attr="latest_locality"
-        )
+        return get_obj_attr(model=User, field="id", identifier=self.user_id, attr="latest_locality")
 
     @latest_locality.setter
     def latest_locality(self, locality):
-        set_user_attr(
-            user_id=self.user_id,
-            attr="latest_locality",
-            value=locality,
-        )
+        set_obj_attr(model=User, field="id", identifier=self.user_id, attr="latest_locality", value=locality)
 
 
 if __name__ == "__main__":

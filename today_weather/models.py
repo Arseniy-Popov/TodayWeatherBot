@@ -21,7 +21,7 @@ class User(Base):
 class AddressInput(Base):
     __tablename__ = "address_inputs"
     id = Column(Integer, primary_key=True)
-    input = Column(String)
+    input = Column(String, unique=True)
     locality_id = Column(Integer, ForeignKey("localities.id"))
     locality = relationship("Locality")
 
@@ -32,7 +32,7 @@ class AddressInput(Base):
 class Locality(Base):
     __tablename__ = "localities"
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String, unique=True)
     lat = Column(Float)
     lng = Column(Float)
 
