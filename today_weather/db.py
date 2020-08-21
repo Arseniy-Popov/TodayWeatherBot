@@ -12,7 +12,7 @@ Base.metadata.create_all(engine)
 
 
 def get_or_none(model, field, value):
-    return session.query(model).filter(getattr(model, value) == value).one_or_none()
+    return session.query(model).filter(getattr(model, field) == value).one_or_none()
 
 
 def create_object(model, **kwargs):

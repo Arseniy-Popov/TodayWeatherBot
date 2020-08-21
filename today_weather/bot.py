@@ -5,7 +5,7 @@ from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
 from today_weather.config import CONFIG, TELEGRAM_TOKEN
-from today_weather.db import get_obj_attr, set_obj_attr, get_or_none, write
+from today_weather.db import get_obj_attr, set_obj_attr, get_or_none, write, create_object
 from today_weather.models import User, AddressInput, Locality
 from today_weather.utils.misc import log_reply
 from today_weather.utils.geocoding import AddressError, geocode
@@ -57,7 +57,8 @@ class HandlerInput(HandlerBase):
                 input if isinstance(input, Locality) else self._get_locality(input)
             )
             weather = self._get_weather(locality)
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             return
         text = Recommender(weather).recommend() + "-" * 30 + f"\n{locality.name}"
         self.reply(text=text, reply_markup=self._keyboard())
@@ -74,8 +75,9 @@ class HandlerInput(HandlerBase):
             except Exception as e:
                 self.reply(text=CONFIG["ERROR"]["GEOCODING_GENERAL"])
                 raise e
-            locality = Locality(name=address, lat=lat, lng=lng)
-            write(locality)
+            locality = get_or_none(Locality, "name", address)
+            if not locality:
+                locality = create_object(model=Locality, name=address, lat=lat, lng=lng)
             write(AddressInput(input=input, locality=locality))
         else:
             locality = cached_input.locality
