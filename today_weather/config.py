@@ -15,7 +15,7 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_API_TOKEN")
 if os.getenv("DATABASE_URL") is None:
     DATABASE_URI = (
         f"postgres+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PWD')}"
-        f"@localhost:5432/{CONFIG['DB']['DB_TABLENAME']}"
+        f"@localhost:5432/{CONFIG['DB']['DB_NAME']}"
     )
 else:
     DATABASE_URI = os.getenv("DATABASE_URL")

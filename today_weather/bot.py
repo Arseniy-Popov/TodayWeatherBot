@@ -66,7 +66,7 @@ class HandlerInput(HandlerBase):
 
     def _get_locality(self, input):
         cached_input = get_or_none(model=AddressInput, field="input", value=input)
-        if cached_input is None:
+        if cached_input is None or cached_input.is_expired():
             try:
                 address, lat, lng = geocode(input)
             except AddressError as e:

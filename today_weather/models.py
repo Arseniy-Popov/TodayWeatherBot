@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float
+from datetime import date, timedelta
+
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -21,20 +23,24 @@ class User(Base):
 class AddressInput(Base):
     __tablename__ = "address_inputs"
     id = Column(Integer, primary_key=True)
-    input = Column(String, unique=True)
-    locality_id = Column(Integer, ForeignKey("localities.id"))
+    input = Column(String, unique=True, nullable=False)
+    locality_id = Column(Integer, ForeignKey("localities.id"), nullable=False)
     locality = relationship("Locality")
+    date = Column(Date, default=date.today, nullable=False)
 
     def __repr__(self):
-        return f"<AddressInput: from {self.input} to {self.locality.name}>"
+        return f"<AddressInput: from {self.input} to {self.locality.name}; {self.date}>"
+
+    def is_expired(self):
+        return date.today() - self.date > timedelta(days=365)
 
 
 class Locality(Base):
     __tablename__ = "localities"
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    lat = Column(Float)
-    lng = Column(Float)
+    name = Column(String, unique=True, nullable=False)
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
 
     def __repr__(self):
         return f"<Locality: {self.name}>"
