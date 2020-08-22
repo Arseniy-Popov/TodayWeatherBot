@@ -5,7 +5,13 @@ import sys
 from telegram import ReplyKeyboardMarkup
 
 from today_weather.config import CONFIG, TELEGRAM_TOKEN
-from today_weather.db import get_obj_attr, set_obj_attr, get_or_none, write, create_object
+from today_weather.db import (
+    get_obj_attr,
+    set_obj_attr,
+    get_or_none,
+    write,
+    create_object,
+)
 from today_weather.models import User, AddressInput, Locality
 from today_weather.utils.misc import log_reply
 from today_weather.utils.geocoding import AddressError, geocode
@@ -58,7 +64,7 @@ class HandlerInput(HandlerBase):
             )
             weather = self._get_weather(locality)
         except Exception as e:
-            logging.error(e)
+            logging.error(type(e).__name__)
             return
         text = Recommender(weather).recommend() + "-" * 30 + f"\n{locality.name}"
         self.reply(text=text, reply_markup=self._keyboard())
@@ -97,7 +103,7 @@ class HandlerInput(HandlerBase):
             [CONFIG["KEYBOARD"]["SET_DEFAULT"]],
         ]
         if self.default_locality is not None:
-            _keyboard.append([f"Default: {self.default_locality}"])
+            _keyboard.append([f"Default: {self.default_locality.name}"])
         return ReplyKeyboardMarkup(_keyboard, resize_keyboard=True)
 
     @property
@@ -108,15 +114,26 @@ class HandlerInput(HandlerBase):
 
     @default_locality.setter
     def default_locality(self, locality):
-        set_obj_attr(model=User, field="id", identifier=self.user_id, attr="default_locality", value=locality)
+        set_obj_attr(
+            model=User,
+            field="id",
+            identifier=self.user_id,
+            attr="default_locality",
+            value=locality,
+        )
 
     @property
     def latest_locality(self):
-        return get_obj_attr(model=User, field="id", identifier=self.user_id, attr="latest_locality")
+        return get_obj_attr(
+            model=User, field="id", identifier=self.user_id, attr="latest_locality"
+        )
 
     @latest_locality.setter
     def latest_locality(self, locality):
-        set_obj_attr(model=User, field="id", identifier=self.user_id, attr="latest_locality", value=locality)
-
-
-
+        set_obj_attr(
+            model=User,
+            field="id",
+            identifier=self.user_id,
+            attr="latest_locality",
+            value=locality,
+        )

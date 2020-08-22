@@ -4,7 +4,8 @@ import sys
 TESTING = sys.argv[-1] == "testing"
 
 
-from today_weather.__init__ import main
+from today_weather.bot import main
 
 
-main()
+if __name__ == "__main__":
+    main()

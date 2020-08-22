@@ -5,8 +5,16 @@ import unittest
 
 import psutil
 from pyrogram import Client, MessageHandler, Filters
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-from today_weather.config import CONFIG, TELEGRAM_APP_API_HASH, TELEGRAM_APP_API_ID
+from today_weather.config import (
+    CONFIG,
+    TELEGRAM_APP_API_HASH,
+    TELEGRAM_APP_API_ID,
+    DATABASE_URI,
+)
+from today_weather.models import Base
 
 
 class Empty:
@@ -24,7 +32,6 @@ class TestTodayWeather(unittest.TestCase):
             "today_weather", api_id=TELEGRAM_APP_API_ID, api_hash=TELEGRAM_APP_API_HASH
         )
         cls.app.start()
-        cls.last_response = None, None
 
     @classmethod
     def tearDownClass(cls):
@@ -34,34 +41,49 @@ class TestTodayWeather(unittest.TestCase):
 
     def setUp(self):
         """
-        The bot is restarted between each test to test for data persistence. 
+        Adds a message handler to save the responses from the bot and restarts the bot
+        between each test to test for data persistence. 
         """
 
+        # add handler to register bot's response
         def register_response(client, message):
+            """
+            Saves the response from the bot.
+            """
             self.response = message
 
         self.register_response_handler = MessageHandler(
             register_response, filters=Filters.user(self.bot)
         )
         self.app.add_handler(self.register_response_handler)
-        self.response = Empty
+        self.response, self.last_response = Empty, Empty
+        # restart the bot
         self.subprocess = subprocess.Popen(
-            shlex.split("pipenv run python -m today_weather.bot"),
+            shlex.split("pipenv run python -m today_weather"),
             cwd=os.getcwd(),
             preexec_fn=os.setsid,
         )
 
     def tearDown(self):
+        """
+        Kills the bot and drops all tables in the test database.
+        """
+        # kill the bot
         self.app.remove_handler(self.register_response_handler)
         self.subprocess.kill()
         self.subprocess.wait()
+        # drop tables
+        engine = create_engine(DATABASE_URI)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        Base.metadata.drop_all(engine)
 
     # Utilities ------------------------------------------------------------------------
 
     def _await_response(self):
-        while self.response == Empty or self.response == self.__class__.last_response:
+        while self.response == Empty or self.response == self.last_response:
             pass
-        self.__class__.last_response = self.response
+        self.last_response = self.response
 
     def _assertResponseContains(self, *items):
         return all(item in self.response.text for item in items)
