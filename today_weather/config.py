@@ -4,7 +4,7 @@ import os
 import dotenv
 
 
-TESTING = True
+TESTING = False
 dotenv.load_dotenv()
 CONFIG = configparser.ConfigParser()
 CONFIG.read("config.ini")
