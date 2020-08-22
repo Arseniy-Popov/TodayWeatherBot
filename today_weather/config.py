@@ -3,6 +3,7 @@ import os
 
 import dotenv
 
+from today_weather.__main__ import TESTING
 
 dotenv.load_dotenv()
 CONFIG = configparser.ConfigParser()
@@ -27,8 +28,10 @@ GOOG_MAPS_API_KEY = os.environ["GOOG_MAPS_API_KEY"]
 OWM_API_KEY = os.environ["OWM_API_KEY"]
 
 # Testing
-try:
+if TESTING:
     TELEGRAM_APP_API_ID = os.environ["TELEGRAM_APP_API_ID"]
     TELEGRAM_APP_API_HASH = os.environ["TELEGRAM_APP_API_HASH"]
-except:
-    pass
+    DATABASE_URI = (
+        f"postgres+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PWD')}"
+        f"@localhost:5432/{CONFIG['DB']['DB_NAME_TEST']}"
+    )
