@@ -4,7 +4,8 @@ import os
 import dotenv
 
 
-TESTING = False
+TEST_DB = False
+TEST_DEPLOYED = True
 dotenv.load_dotenv()
 CONFIG = configparser.ConfigParser()
 CONFIG.read("config.ini")
@@ -13,7 +14,7 @@ CONFIG.read("config.ini")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_API_TOKEN")
 
 # Database
-if TESTING:
+if TEST_DB:
     DATABASE_URI = (
         f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PWD')}"
         f"@localhost:5432/{CONFIG['DB']['DB_NAME_TEST']}"
@@ -38,3 +39,7 @@ try:
     TELEGRAM_APP_API_HASH = os.environ["TELEGRAM_APP_API_HASH"]
 except:
     pass
+if TEST_DEPLOYED:
+    USERNAME_BOT_TO_TEST = CONFIG["BOTS"]["BOT_USERNAME"]
+else:
+    USERNAME_BOT_TO_TEST = CONFIG["BOTS"]["TEST_BOT_USERNAME"]

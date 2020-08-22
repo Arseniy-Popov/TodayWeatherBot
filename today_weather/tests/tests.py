@@ -13,6 +13,7 @@ from today_weather.config import (
     TELEGRAM_APP_API_HASH,
     TELEGRAM_APP_API_ID,
     DATABASE_URI,
+    USERNAME_BOT_TO_TEST
 )
 from today_weather.models import Base
 
@@ -27,7 +28,7 @@ class TestTodayWeather(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.bot = CONFIG["BOTS"]["TEST_BOT_USERNAME"]
+        cls.bot = USERNAME_BOT_TO_TEST
         cls.app = Client(
             "today_weather", api_id=TELEGRAM_APP_API_ID, api_hash=TELEGRAM_APP_API_HASH
         )
