@@ -150,7 +150,7 @@ class TestTodayWeather(unittest.TestCase):
         self._await_response()
         self._assertResponseContains("\u00B0C", self.default_address)
 
-    @unittest.skipIf(TEST_DEPLOYED, "")
+    @unittest.skipIf(TEST_DEPLOYED, "Only for test database.")
     def test_address_input_cached(self):
         address_input_1, address_input_2 = "New York", "Moscow"
         self.app.send_message(self.bot, address_input_1)
