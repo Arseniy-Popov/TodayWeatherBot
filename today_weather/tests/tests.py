@@ -77,9 +77,9 @@ class TestTodayWeather(unittest.TestCase):
         """
         Kills the bot and drops all tables in the test database.
         """
+        self.app.remove_handler(self.register_response_handler)
         # kill the bot
         if not TEST_DEPLOYED:
-            self.app.remove_handler(self.register_response_handler)
             self.subprocess.kill()
             self.subprocess.wait()
         # drop tables
