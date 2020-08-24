@@ -4,18 +4,20 @@ import subprocess
 import unittest
 
 import psutil
-from pyrogram import Client, MessageHandler, Filters
+from pyrogram import Client, Filters, MessageHandler
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from today_weather.config import (
     CONFIG,
+    DATABASE_URI,
     TELEGRAM_APP_API_HASH,
     TELEGRAM_APP_API_ID,
-    DATABASE_URI,
-    USERNAME_BOT_TO_TEST
+    TEST_DB,
+    TEST_DEPLOYED,
+    USERNAME_BOT_TO_TEST,
 )
-from today_weather.models import Base
+from today_weather.models import AddressInput, Base
 
 
 class Empty:
@@ -29,10 +31,15 @@ class TestTodayWeather(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.bot = USERNAME_BOT_TO_TEST
+        # launch test TG client
         cls.app = Client(
             "today_weather", api_id=TELEGRAM_APP_API_ID, api_hash=TELEGRAM_APP_API_HASH
         )
         cls.app.start()
+        # DB
+        cls.engine = create_engine(DATABASE_URI)
+        cls.Session = sessionmaker(bind=cls.engine)
+        cls.session = cls.Session()
 
     @classmethod
     def tearDownClass(cls):
@@ -59,25 +66,25 @@ class TestTodayWeather(unittest.TestCase):
         self.app.add_handler(self.register_response_handler)
         self.response, self.last_response = Empty, Empty
         # restart the bot
-        self.subprocess = subprocess.Popen(
-            shlex.split("pipenv run python -m today_weather"),
-            cwd=os.getcwd(),
-            preexec_fn=os.setsid,
-        )
+        if not TEST_DEPLOYED:
+            self.subprocess = subprocess.Popen(
+                shlex.split("pipenv run python -m today_weather"),
+                cwd=os.getcwd(),
+                preexec_fn=os.setsid,
+            )
 
     def tearDown(self):
         """
         Kills the bot and drops all tables in the test database.
         """
         # kill the bot
-        self.app.remove_handler(self.register_response_handler)
-        self.subprocess.kill()
-        self.subprocess.wait()
+        if not TEST_DEPLOYED:
+            self.app.remove_handler(self.register_response_handler)
+            self.subprocess.kill()
+            self.subprocess.wait()
         # drop tables
-        engine = create_engine(DATABASE_URI)
-        Session = sessionmaker(bind=engine)
-        session = Session()
-        Base.metadata.drop_all(engine)
+        if TEST_DB:
+            Base.metadata.drop_all(self.engine)
 
     # Utilities ------------------------------------------------------------------------
 
@@ -143,6 +150,28 @@ class TestTodayWeather(unittest.TestCase):
         self._await_response()
         self._assertResponseContains("\u00B0C", self.default_address)
 
+    @unittest.skipIf(TEST_DEPLOYED, "")
+    def test_address_input_cached(self):
+        address_input_1, address_input_2 = "New York", "Moscow"
+        self.app.send_message(self.bot, address_input_1)
+        self._await_response()
+        self.app.send_message(self.bot, address_input_2)
+        self._await_response()
+        # input for 'New York' now points to 'Moscow' locality
+        self.session.query(AddressInput).filter(
+            AddressInput.input == address_input_1
+        ).one_or_none().locality = (
+            self.session.query(AddressInput)
+            .filter(AddressInput.input == address_input_2)
+            .one_or_none()
+            .locality
+        )
+        self.session.commit()
+        self.app.send_message(self.bot, address_input_1)
+        self._await_response()
+        # assert entering 'New York' returns results for 'Moscow'
+        self._assertResponseContains("\u00B0C", address_input_2)
+
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)

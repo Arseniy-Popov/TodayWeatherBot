@@ -2,8 +2,8 @@ import logging
 
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
-from today_weather.handlers import HandlerWelcome, HandlerInput
 from today_weather.config import TELEGRAM_TOKEN
+from today_weather.handlers import HandlerInput, HandlerWelcome
 
 
 def main():

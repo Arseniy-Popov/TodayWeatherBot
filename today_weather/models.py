@@ -1,8 +1,10 @@
 from datetime import date, timedelta
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, Date
+from sqlalchemy import Column, Date, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+
+from today_weather.config import CONFIG
 
 
 Base = declarative_base()
@@ -32,7 +34,9 @@ class AddressInput(Base):
         return f"<AddressInput: from {self.input} to {self.locality.name}; {self.date}>"
 
     def is_expired(self):
-        return date.today() - self.date > timedelta(days=365)
+        return date.today() - self.date > timedelta(
+            days=int(CONFIG["CACHING"]["GEOCODING_PERIOD"])
+        )
 
 
 class Locality(Base):

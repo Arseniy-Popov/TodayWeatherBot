@@ -1,6 +1,6 @@
 import datetime as dt
-import os
 import logging
+import os
 from collections import namedtuple
 
 import requests

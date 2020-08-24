@@ -1,9 +1,5 @@
 import sys
 
-
-TESTING = sys.argv[-1] == "testing"
-
-
 from today_weather.bot import main
 
 

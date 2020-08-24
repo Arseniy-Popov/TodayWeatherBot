@@ -4,8 +4,8 @@ import os
 import dotenv
 
 
-TEST_DB = False
-TEST_DEPLOYED = True
+TEST_DB = True
+TEST_DEPLOYED = False
 dotenv.load_dotenv()
 CONFIG = configparser.ConfigParser()
 CONFIG.read("config.ini")

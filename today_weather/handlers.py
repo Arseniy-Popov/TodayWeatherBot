@@ -1,20 +1,20 @@
 import logging
-from abc import ABC, abstractmethod
 import sys
+from abc import ABC, abstractmethod
 
 from telegram import ReplyKeyboardMarkup
 
 from today_weather.config import CONFIG, TELEGRAM_TOKEN
 from today_weather.db import (
-    get_obj_attr,
-    set_obj_attr,
-    get_or_none,
-    write,
     create_object,
+    get_obj_attr,
+    get_or_none,
+    set_obj_attr,
+    write,
 )
-from today_weather.models import User, AddressInput, Locality
-from today_weather.utils.misc import log_reply
+from today_weather.models import AddressInput, Locality, User
 from today_weather.utils.geocoding import AddressError, geocode
+from today_weather.utils.misc import log_reply
 from today_weather.utils.owmparser import OWMParser
 from today_weather.utils.recommend import Recommender
 
@@ -64,7 +64,7 @@ class HandlerInput(HandlerBase):
             )
             weather = self._get_weather(locality)
         except Exception as e:
-            logging.error(type(e).__name__)
+            logging.error(e.__class__.__name__)
             return
         text = Recommender(weather).recommend() + "-" * 30 + f"\n{locality.name}"
         self.reply(text=text, reply_markup=self._keyboard())

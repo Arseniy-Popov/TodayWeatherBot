@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from today_weather.config import DATABASE_URI
-from today_weather.models import Base, User, AddressInput, Locality
+from today_weather.models import AddressInput, Base, Locality, User
 
 
 engine = create_engine(DATABASE_URI)
