@@ -4,7 +4,7 @@ import os
 import dotenv
 
 
-TEST_DB = True
+TEST_DB = False
 TEST_DEPLOYED = False
 dotenv.load_dotenv()
 CONFIG = configparser.ConfigParser()
