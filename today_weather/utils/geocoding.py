@@ -5,14 +5,7 @@ import dotenv
 import requests
 
 from today_weather.config import GOOG_MAPS_API_KEY
-
-
-class AddressError(Exception):
-    """
-    Address not a locality.
-    """
-
-    pass
+from today_weather.exceptions import WeatherParseError, GeocodingError, LocalityError
 
 
 def make_request(address):
@@ -34,7 +27,7 @@ def parse_response(response):
 def check_response(result):
     types = result["types"]
     if "locality" not in types:
-        raise AddressError
+        raise LocalityError()
 
 
 def geocode(address):
