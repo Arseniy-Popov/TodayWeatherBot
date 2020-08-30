@@ -34,7 +34,7 @@ def parse_response(response):
 def check_response(result):
     types = result["types"]
     if "locality" not in types:
-        raise AddressError()
+        raise AddressError
 
 
 def geocode(address):

@@ -37,9 +37,10 @@ class TestTodayWeather(unittest.TestCase):
         )
         cls.app.start()
         # DB
-        cls.engine = create_engine(DATABASE_URI)
-        cls.Session = sessionmaker(bind=cls.engine)
-        cls.session = cls.Session()
+        if TEST_DB:
+            cls.engine = create_engine(DATABASE_URI)
+            cls.Session = sessionmaker(bind=cls.engine)
+            cls.session = cls.Session()
 
     @classmethod
     def tearDownClass(cls):
