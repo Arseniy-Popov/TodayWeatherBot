@@ -1,8 +1,8 @@
 from urllib.parse import unquote
 from typing import Tuple
 
-from flask import Flask
-from flask_restful import Resource, Api
+from flask import Flask, url_for, request
+from flask.views import MethodView
 
 from today_weather.config import CONFIG
 from today_weather.db import (
@@ -13,7 +13,12 @@ from today_weather.db import (
     write,
 )
 from today_weather.models import AddressInput, Locality, User
-from today_weather.exceptions import WeatherParseError, GeocodingError, LocalityError, GeneralError
+from today_weather.exceptions import (
+    WeatherParseError,
+    GeocodingError,
+    LocalityError,
+    GeneralError,
+)
 from today_weather.utils.geocoding import geocode
 from today_weather.utils.misc import log_reply
 from today_weather.utils.owmparser import OWMParser
@@ -21,7 +26,6 @@ from today_weather.utils.recommend import Recommender
 
 
 app = Flask(__name__)
-api = Api(app)
 
 
 def get_locality(input: str) -> Locality:
@@ -47,38 +51,67 @@ def get_weather(locality: Locality) -> Tuple[int, int, bool, bool]:
         today_weather = OWMParser().get_today_weather(locality.lat, locality.lng)
         return today_weather
     except Exception:
-        raise WeatherParseError() 
+        raise WeatherParseError()
 
 
 def error_message(exception):
     if hasattr(exception, "error_message"):
-        return exception.error_message, 400
+        message = exception.error_message
     else:
-        return GeneralError().error_message, 400
-        
-class Forecast(Resource):
-    def get(self, address: str) -> Tuple[str, int]:
+        message = GeneralError().error_message
+    return {"error": message}, 400
+
+
+def generate_user_response(
+    weather: Tuple[int, int, bool, bool], locality: Locality
+) -> str:
+    return Recommender(weather).recommend() + "-" * 30 + f"\n{locality.name}"
+
+
+class ForecastView(MethodView):
+    def post(self) -> Tuple[dict, int]:
         try:
-            locality =  get_locality(address)
+            locality = get_locality(request.json["address"])
             weather = get_weather(locality)
         except Exception as e:
             return error_message(e)
-        response = Recommender(weather).recommend() + "-" * 30 + f"\n{locality.name}"
-        return response, 200
-        
-
-class Locality(Resource):
-    def get(self, address: str) -> Tuple[int, int]:
-        # try:
-        locality =  get_locality(address)
-        # except Exception as e:
-            # return error_message(e), 400
-        return locality.id
+        response = generate_user_response(weather, locality)
+        return (
+            {"response": response, "locality": url_for("locality", id=locality.id)},
+            200,
+        )
 
 
-api.add_resource(Forecast, "/forecast/<address>")
-api.add_resource(Locality, "/locality/<address>")
+class LocalityView(MethodView):
+    def get(self, id: int) -> Tuple[int, int]:
+        locality = get_or_none(Locality, "id", id)
+        return {"locality": locality.name}
+
+
+class LocalityForecast(MethodView):
+    def get(self, id):
+        locality = get_or_none(Locality, "id", id)
+        if not locality:
+            return {"error": "no such locality"}, 400
+        try:
+            weather = get_weather(locality)
+        except Exception as e:
+            return error_message(e)
+        response = generate_user_response(weather, locality)
+        return (
+            {"response": response, "locality": url_for("locality", id=locality.id)},
+            200,
+        )
+
+
+app.add_url_rule("/forecast", view_func=ForecastView.as_view("forecast_by_string"))
+app.add_url_rule("/locality/<int:id>", view_func=LocalityView.as_view("locality"))
+app.add_url_rule(
+    "/locality/<int:id>/forecast",
+    view_func=LocalityForecast.as_view("locality_forecast"),
+)
 
 
 if __name__ == "__main__":
+    # app.run(host='0.0.0.0', port="8080", debug=True)
     app.run(debug=True)
