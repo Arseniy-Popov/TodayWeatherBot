@@ -5,7 +5,7 @@ import dotenv
 import requests
 
 from today_weather.config import GOOG_MAPS_API_KEY
-from today_weather.exceptions import WeatherParseError, GeocodingError, LocalityError
+from today_weather.exceptions import GeocodingError
 
 
 def make_request(address):
@@ -32,4 +32,7 @@ def check_response(result):
 
 def geocode(address):
     response = make_request(address)
-    return parse_response(response)
+    try:
+        return parse_response(response)
+    except Exception:
+        raise GeocodingError()
