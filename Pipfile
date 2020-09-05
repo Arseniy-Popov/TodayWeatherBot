@@ -14,6 +14,8 @@ sqlalchemy = "*"
 pyrogram = "*"
 psutil = "*"
 flask-restful = "*"
+flask-marshmallow = "*"
+marshmallow = "*"
 
 [requires]
 python_version = "3.7"

@@ -15,6 +15,12 @@ class OWMParser:
             ("dt_start", "dt_end", "temp_min", "temp_max", "rain", "snow"),
         )
 
+    def __call__(self, lat, lng):
+        response = self.make_request(lat, lng)
+        weather_data = self.parse_weather_data(response)
+        weather_data = self.filter_today_weather_data(weather_data)
+        return self.aggregate_weather(weather_data)
+
     def make_request(self, lat, lng):
         URL = "https://api.openweathermap.org/data/2.5/forecast"
         params = {"lat": lat, "lon": lng, "appid": OWM_API_KEY, "units": "metric"}
@@ -51,14 +57,9 @@ class OWMParser:
         return [item for item in weather_data if item.dt_start < cutoff]
 
     def aggregate_weather(self, weather_data):
-        temp_min = min(i.temp_min for i in weather_data)
-        temp_max = max(i.temp_max for i in weather_data)
-        rain = any(i.rain for i in weather_data)
-        snow = any(i.snow for i in weather_data)
-        return temp_min, temp_max, rain, snow
-
-    def get_today_weather(self, lat, lng):
-        response = self.make_request(lat, lng)
-        weather_data = self.parse_weather_data(response)
-        weather_data = self.filter_today_weather_data(weather_data)
-        return self.aggregate_weather(weather_data)
+        return {
+            "temp_min": min(i.temp_min for i in weather_data),
+            "temp_max": max(i.temp_max for i in weather_data),
+            "rain": any(i.rain for i in weather_data),
+            "snow": any(i.snow for i in weather_data),
+        }
