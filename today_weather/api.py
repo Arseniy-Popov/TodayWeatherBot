@@ -95,8 +95,11 @@ class LocalityForecastView(MethodView):
 
 @app.errorhandler(Exception)
 def error_handler(exception):
+    app.logger.exception(exception)
     if isinstance(exception, BaseAPIException):
         return {"error": exception.error_message}, exception.status_code
+    elif isinstance(exception, HTTPException):
+        return {"error": exception.description}, exception.code
     else:
         return {"error": CONFIG["ERROR"]["GENERAL"]}, 500
 
