@@ -1,5 +1,5 @@
 from urllib.parse import unquote
-from typing import Tuple
+from typing import Tuple, Dict
 
 from flask import Flask, url_for, request, abort
 from flask.views import MethodView
@@ -10,6 +10,7 @@ from marshmallow import Schema, INCLUDE
 from today_weather.config import CONFIG
 from today_weather.db import (
     create_object,
+    get_all,
     get_obj_attr,
     get_or_none,
     set_obj_attr,
@@ -34,7 +35,7 @@ app = Flask(__name__)
 ma = Marshmallow(app)
 
 
-def get_locality(input):
+def get_locality(input: str) -> Locality:
     cached_input = get_or_none(model=AddressInput, field="input", value=input)
     if cached_input is None or cached_input.is_expired():
         address, lat, lng = geocode(input)
@@ -47,7 +48,7 @@ def get_locality(input):
     return locality
 
 
-def get_weather(locality):
+def get_weather(locality: Locality) -> Dict:
     try:
         today_weather = OWMParser()(locality.lat, locality.lng)
         return today_weather
@@ -62,7 +63,7 @@ class WeatherSchema(Schema):
 
 class LocalitySchema(Schema):
     class Meta:
-        fields = ("name", "links")
+        fields = ("name", "links", "lat", "lng")
 
     links = ma.Hyperlinks({"self": ma.URLFor("localities", id="<id>")})
 
@@ -71,12 +72,28 @@ weather_schema = WeatherSchema()
 locality_schema = LocalitySchema()
 
 
-class LocalityView(MethodView):
-    def get(self, id):
+class ListDetailViewMixin:
+    """
+    Routes .get requests to either the .list or the .detail method
+    depending on whether an identifier has been supplied. 
+    """
+
+    def get(self, id=None):
+        if id is not None:
+            return self.detail(id)
+        return self.list()
+
+
+class LocalityView(MethodView, ListDetailViewMixin):
+    def detail(self, id):
         locality = get_or_none(Locality, "id", id)
         if not locality:
             raise NotFoundError()
         return ({"locality": locality_schema.dump(locality)}, 200)
+
+    def list(self):
+        localities = get_all(Locality)
+        return ({"localities": locality_schema.dump(localities, many=True)}, 200)
 
     def post(self):
         locality = get_locality(request.json["address"])
@@ -86,7 +103,7 @@ class LocalityView(MethodView):
                 "forecast": weather_schema.dump(weather),
                 "locality": locality_schema.dump(locality),
             },
-            200,
+            201,
         )
 
 
@@ -94,7 +111,7 @@ class LocalityForecastView(MethodView):
     def get(self, id):
         locality = get_or_none(Locality, "id", id)
         if not locality:
-            raise NotFoundError()
+            abort(404)
         weather = get_weather(locality)
         return (
             {
@@ -116,15 +133,9 @@ def error_handler(exception):
         return {"error": CONFIG["ERROR"]["GENERAL"]}, 500
 
 
-view_func=LocalityView.as_view("localities")
-app.add_url_rule(
-    "/localities/<int:id>",
-    view_func=view_func,
-    methods=["GET"],
-)
-app.add_url_rule(
-    "/localities/", view_func=view_func, methods=["POST"]
-)
+locality_view = LocalityView.as_view("localities")
+app.add_url_rule("/localities/<int:id>", view_func=locality_view)
+app.add_url_rule("/localities", view_func=locality_view)
 app.add_url_rule(
     "/localities/<int:id>/forecast",
     view_func=LocalityForecastView.as_view("locality_forecast"),

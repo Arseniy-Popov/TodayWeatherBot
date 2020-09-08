@@ -15,6 +15,10 @@ def get_or_none(model, field, value):
     return session.query(model).filter(getattr(model, field) == value).one_or_none()
 
 
+def get_all(model):
+    return list(session.query(model))
+
+
 def create_object(model, **kwargs):
     obj = model(**kwargs)
     session.add(obj)

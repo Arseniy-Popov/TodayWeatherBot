@@ -1,3 +1,4 @@
+from typing import Dict
 import datetime as dt
 import logging
 import os
@@ -8,14 +9,13 @@ import requests
 from today_weather.config import OWM_API_KEY
 
 
-class OWMParser:
-    def __init__(self):
-        self.WeatherData = namedtuple(
-            "WeatherData",
-            ("dt_start", "dt_end", "temp_min", "temp_max", "rain", "snow"),
-        )
+WeatherData = namedtuple(
+    "WeatherData", ("dt_start", "dt_end", "temp_min", "temp_max", "rain", "snow")
+)
 
-    def __call__(self, lat, lng):
+
+class OWMParser:
+    def __call__(self, lat: float, lng: float) -> Dict:
         response = self.make_request(lat, lng)
         weather_data = self.parse_weather_data(response)
         weather_data = self.filter_today_weather_data(weather_data)
@@ -49,14 +49,14 @@ class OWMParser:
             snow = weather_item["snow"]["3h"]
         except KeyError:
             snow = False
-        return self.WeatherData(dt_start, dt_end, temp_min, temp_max, rain, snow)
+        return WeatherData(dt_start, dt_end, temp_min, temp_max, rain, snow)
 
     def filter_today_weather_data(self, weather_data):
         today = dt.datetime.now(tz=self.timezone)
         cutoff = today.replace(day=today.day + 1, hour=3)
         return [item for item in weather_data if item.dt_start < cutoff]
 
-    def aggregate_weather(self, weather_data):
+    def aggregate_weather(self, weather_data: WeatherData) -> Dict:
         return {
             "temp_min": min(i.temp_min for i in weather_data),
             "temp_max": max(i.temp_max for i in weather_data),
