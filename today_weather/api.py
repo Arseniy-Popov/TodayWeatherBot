@@ -3,6 +3,7 @@ from typing import Tuple
 
 from flask import Flask, url_for, request, abort
 from flask.views import MethodView
+from flask_marshmallow import Marshmallow
 from werkzeug.exceptions import HTTPException, NotFound
 from marshmallow import Schema, INCLUDE
 
@@ -30,6 +31,7 @@ from today_weather.utils.recommend import Recommender
 
 
 app = Flask(__name__)
+ma = Marshmallow(app)
 
 
 def get_locality(input):
@@ -55,21 +57,18 @@ def get_weather(locality):
 
 class WeatherSchema(Schema):
     class Meta:
-        fields = ("temp_min", "temp_max", "created_at", "uppername")
+        fields = ("temp_min", "temp_max", "rain", "snow")
 
 
-class ForecastView(MethodView):
-    def post(self):
-        locality = get_locality(request.json["address"])
-        weather = get_weather(locality)
-        weather_schema = WeatherSchema()
-        return (
-            {
-                "forecast": weather,
-                "locality": url_for("locality", id=locality.id),
-            },
-            200,
-        )
+class LocalitySchema(Schema):
+    class Meta:
+        fields = ("name", "links")
+
+    links = ma.Hyperlinks({"self": ma.URLFor("localities", id="<id>")})
+
+
+weather_schema = WeatherSchema()
+locality_schema = LocalitySchema()
 
 
 class LocalityView(MethodView):
@@ -77,7 +76,18 @@ class LocalityView(MethodView):
         locality = get_or_none(Locality, "id", id)
         if not locality:
             raise NotFoundError()
-        return {"locality": locality.name}
+        return ({"locality": locality_schema.dump(locality)}, 200)
+
+    def post(self):
+        locality = get_locality(request.json["address"])
+        weather = get_weather(locality)
+        return (
+            {
+                "forecast": weather_schema.dump(weather),
+                "locality": locality_schema.dump(locality),
+            },
+            200,
+        )
 
 
 class LocalityForecastView(MethodView):
@@ -86,9 +96,11 @@ class LocalityForecastView(MethodView):
         if not locality:
             raise NotFoundError()
         weather = get_weather(locality)
-        response = generate_user_response(weather, locality)
         return (
-            {"response": response, "locality": url_for("locality", id=locality.id)},
+            {
+                "forecast": weather_schema.dump(weather),
+                "locality": locality_schema.dump(locality),
+            },
             200,
         )
 
@@ -104,10 +116,17 @@ def error_handler(exception):
         return {"error": CONFIG["ERROR"]["GENERAL"]}, 500
 
 
-app.add_url_rule("/forecast", view_func=ForecastView.as_view("forecast_by_string"))
-app.add_url_rule("/locality/<int:id>", view_func=LocalityView.as_view("locality"))
+view_func=LocalityView.as_view("localities")
 app.add_url_rule(
-    "/locality/<int:id>/forecast",
+    "/localities/<int:id>",
+    view_func=view_func,
+    methods=["GET"],
+)
+app.add_url_rule(
+    "/localities/", view_func=view_func, methods=["POST"]
+)
+app.add_url_rule(
+    "/localities/<int:id>/forecast",
     view_func=LocalityForecastView.as_view("locality_forecast"),
 )
 
