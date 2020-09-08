@@ -1,13 +1,10 @@
-from urllib.parse import unquote
-from typing import Tuple, Dict
+from typing import Dict, Tuple
 
-from flask import Flask, url_for, request, abort
+from flask import abort, request, url_for
 from flask.views import MethodView
-from flask_marshmallow import Marshmallow
-from werkzeug.exceptions import HTTPException, NotFound
-from marshmallow import Schema, INCLUDE
 
 from today_weather.config import CONFIG
+from today_weather.schemas import weather_schema, locality_schema
 from today_weather.db import (
     create_object,
     get_all,
@@ -16,23 +13,19 @@ from today_weather.db import (
     set_obj_attr,
     write,
 )
-from today_weather.models import AddressInput, Locality, User
 from today_weather.exceptions import (
     BaseAPIException,
-    WeatherParseError,
+    GeneralError,
     GeocodingError,
     LocalityError,
-    GeneralError,
     NotFoundError,
+    WeatherParseError,
 )
+from today_weather.models import AddressInput, Locality, User
 from today_weather.utils.geocoding import geocode
 from today_weather.utils.misc import log_reply
 from today_weather.utils.owmparser import OWMParser
 from today_weather.utils.recommend import Recommender
-
-
-app = Flask(__name__)
-ma = Marshmallow(app)
 
 
 def get_locality(input: str) -> Locality:
@@ -56,22 +49,6 @@ def get_weather(locality: Locality) -> Dict:
         raise WeatherParseError()
 
 
-class WeatherSchema(Schema):
-    class Meta:
-        fields = ("temp_min", "temp_max", "rain", "snow")
-
-
-class LocalitySchema(Schema):
-    class Meta:
-        fields = ("name", "links", "lat", "lng")
-
-    links = ma.Hyperlinks({"self": ma.URLFor("localities", id="<id>")})
-
-
-weather_schema = WeatherSchema()
-locality_schema = LocalitySchema()
-
-
 class ListDetailViewMixin:
     """
     Routes .get requests to either the .list or the .detail method
@@ -88,7 +65,7 @@ class LocalityView(MethodView, ListDetailViewMixin):
     def detail(self, id):
         locality = get_or_none(Locality, "id", id)
         if not locality:
-            raise NotFoundError()
+            abort(404)
         return ({"locality": locality_schema.dump(locality)}, 200)
 
     def list(self):
@@ -120,27 +97,3 @@ class LocalityForecastView(MethodView):
             },
             200,
         )
-
-
-@app.errorhandler(Exception)
-def error_handler(exception):
-    app.logger.exception(exception)
-    if isinstance(exception, BaseAPIException):
-        return {"error": exception.error_message}, exception.status_code
-    elif isinstance(exception, HTTPException):
-        return {"error": exception.description}, exception.code
-    else:
-        return {"error": CONFIG["ERROR"]["GENERAL"]}, 500
-
-
-locality_view = LocalityView.as_view("localities")
-app.add_url_rule("/localities/<int:id>", view_func=locality_view)
-app.add_url_rule("/localities", view_func=locality_view)
-app.add_url_rule(
-    "/localities/<int:id>/forecast",
-    view_func=LocalityForecastView.as_view("locality_forecast"),
-)
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

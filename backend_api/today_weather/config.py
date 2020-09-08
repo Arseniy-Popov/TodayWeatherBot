@@ -3,7 +3,6 @@ import os
 
 import dotenv
 
-
 TEST_DB = False
 TEST_DEPLOYED = True
 dotenv.load_dotenv()

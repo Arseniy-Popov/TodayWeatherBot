@@ -1,13 +1,12 @@
-from typing import Dict
 import datetime as dt
 import logging
 import os
 from collections import namedtuple
+from typing import Dict
 
 import requests
 
 from today_weather.config import OWM_API_KEY
-
 
 WeatherData = namedtuple(
     "WeatherData", ("dt_start", "dt_end", "temp_min", "temp_max", "rain", "snow")
