@@ -71,7 +71,7 @@ class LocalityView(MethodView, ListDetailViewMixin):
         locality = get_or_none(Locality, "id", id)
         if not locality:
             abort(status.HTTP_404_NOT_FOUND)
-        return ({"locality": locality_schema.dump(locality)}, status.HTTP_404_NOT_FOUND)
+        return ({"locality": locality_schema.dump(locality)}, status.HTTP_200_OK)
 
     def list(self):
         localities = get_all(Locality)

@@ -12,8 +12,8 @@ services:
         build: .
         image: today_weather:latest
         restart: always
-        ports:
-            - "8080:8080"
+        expose:
+            - 8080
         depends_on:
             - db
         env_file:
@@ -21,6 +21,6 @@ services:
     nginx:
         build: ./nginx
         ports:
-            - 1337:80
+            - 8080:80
         depends_on:
             - web
