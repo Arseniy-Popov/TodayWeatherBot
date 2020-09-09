@@ -17,9 +17,19 @@ def error_handler(exception):
         return {"error": CONFIG["ERROR"]["GENERAL"]}, 500
 
 
-locality_view = LocalityView.as_view("localities")
-app.add_url_rule("/localities/<int:id>", view_func=locality_view)
-app.add_url_rule("/localities", view_func=locality_view)
+def register_api(view, endpoint, url, pk="id", pk_type="int"):
+    """
+    Adds routing for list view at {url} and detail view at {url}/<{pk_type}:{pk}>.
+    """
+    view_func = view.as_view(endpoint)
+    app.add_url_rule(url, view_func=view_func)
+    app.add_url_rule(f"{url}/<{pk_type}:{pk}>", view_func=view_func)
+
+
+register_api(view=LocalityView, endpoint="localities", url="/localities")
+# locality_view = LocalityView.as_view("localities")
+# app.add_url_rule("/localities/<int:id>", view_func=locality_view)
+# app.add_url_rule("/localities", view_func=locality_view)
 app.add_url_rule(
     "/localities/<int:id>/forecast",
     view_func=LocalityForecastView.as_view("locality_forecast"),

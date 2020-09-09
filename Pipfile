@@ -16,6 +16,7 @@ psutil = "*"
 flask-restful = "*"
 flask-marshmallow = "*"
 marshmallow = "*"
+flask-api = "*"
 
 [requires]
 python_version = "3.7"
