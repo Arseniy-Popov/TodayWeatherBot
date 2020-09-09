@@ -6,17 +6,7 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-python-dotenv = "*"
-requests = "*"
-python-telegram-bot = "*"
-psycopg2 = "*"
-sqlalchemy = "*"
-pyrogram = "*"
-psutil = "*"
-flask-restful = "*"
-flask-marshmallow = "*"
-marshmallow = "*"
-flask-api = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.7"

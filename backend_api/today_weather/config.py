@@ -13,18 +13,18 @@ CONFIG.read("config.ini")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_API_TOKEN")
 
 # Database
-if TEST_DB:
-    DATABASE_URI = (
-        f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PWD')}"
-        f"@localhost:5432/{CONFIG['DB']['DB_NAME_TEST']}"
-    )
-elif os.getenv("DATABASE_URL") is None:
-    DATABASE_URI = (
-        f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PWD')}"
-        f"@localhost:5432/{CONFIG['DB']['DB_NAME']}"
-    )
-else:
-    DATABASE_URI = os.getenv("DATABASE_URL")
+# if TEST_DB:
+#     DATABASE_URI = (
+#         f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PWD')}"
+#         f"@localhost:5432/{CONFIG['DB']['DB_NAME_TEST']}"
+#     )
+# elif os.getenv("DATABASE_URL") is None:
+DATABASE_URI = (
+    f"postgresql+psycopg2://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
+    f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+)
+# else:
+#     DATABASE_URI = os.getenv("DATABASE_URL")
 
 # Google Maps Geocoding API
 GOOG_MAPS_API_KEY = os.environ["GOOG_MAPS_API_KEY"]

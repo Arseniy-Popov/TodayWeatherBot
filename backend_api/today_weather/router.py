@@ -27,9 +27,6 @@ def register_api(view, endpoint, url, pk="id", pk_type="int"):
 
 
 register_api(view=LocalityView, endpoint="localities", url="/localities")
-# locality_view = LocalityView.as_view("localities")
-# app.add_url_rule("/localities/<int:id>", view_func=locality_view)
-# app.add_url_rule("/localities", view_func=locality_view)
 app.add_url_rule(
     "/localities/<int:id>/forecast",
     view_func=LocalityForecastView.as_view("locality_forecast"),
