@@ -1,14 +1,15 @@
 openapi: 3.0.2
 info:
-  title: 'today_weather'
+  title: 'Backend API for TodayWeather'
   version: ''
 
 servers:
-  - url: today-weather.arseniypopov.com
+  - url: today-weather-api.arseniypopov.com
 
 tags:
   - name: localities
     description: ''
+  - name: forecast
 
 
 paths:
@@ -26,13 +27,16 @@ paths:
       summary: Get locality by id.
       responses:
         '200':
-          description: ''
+          description: Locality returned.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Locality'
+              examples:
+                localityExample:
+                  $ref: '#/components/examples/localityExample'
         '404':
-          description: locality not found
+          description: Locality not found.
           content:
             application/json:
               schema:
@@ -44,16 +48,22 @@ paths:
       summary: Get all localities.
       responses:
         '200':
-          description: ''
+          description: List of localities returned.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Locality'
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     post:
       tags:
-        - localities
+        - forecast
       summary: Supply free-form address input.
       requestBody:
         description: Free-from address input.
@@ -91,7 +101,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
+  /localities/{locality_id}/forecast:
+    parameters:
+      - name: locality_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: number
+    get:
+      tags:
+        - forecast
+      summary: Get forecast for locality.
+      responses:
+        '200':
+          description: Forecast returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocalityForecast'
+        '404':
+          description: Locality not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
@@ -137,8 +177,21 @@ components:
     Error:
       title: Error
       type: object
-      description: Error.
+      description: Error description.
       properties:
         error:
           type: string
           description: error message
+  examples:
+    localityExample:
+      value:
+        {
+        "locality": {
+          "lat": 55.755826,
+          "links": {
+              "self": "/localities/1"
+          },
+          "lng": 37.6172999,
+          "name": "Moscow, Russia"
+        }
+        }
