@@ -1,7 +1,6 @@
 version: '3.8'
 volumes:
     postgres_data:
-    static_data:
 services:
     db:
         image: postgres:latest
@@ -10,10 +9,10 @@ services:
         env_file:
             - ./.env
     web:
-        build: .
+        build: ./
         image: today_weather:latest
         volumes:
-            - static_data:/app/today_weather/docs/
+            - ./today_weather/docs/:/app/today_weather/docs/
         expose:
             - 8080
         depends_on:
@@ -22,9 +21,10 @@ services:
             - ./.env
     nginx:
         build: ./nginx
+        image: nginx:latest
         ports:
             - 8080:80
         depends_on:
             - web
         volumes:
-            - static_data:/app/today_weather/docs/
+            - ./today_weather/docs/:/app/today_weather/docs/

@@ -54,31 +54,12 @@ def get_weather(locality: Locality) -> Dict:
         raise WeatherParseError()
 
 
-class ListDetailViewMixin:
-    """
-    Routes .get requests to either the .list or the .detail method
-    depending on whether an identifier has been supplied. 
-    """
-
-    def get(self, id=None):
-        if id is not None:
-            return self.detail(id)
-        return self.list()
-
-
-class LocalityView(MethodView, ListDetailViewMixin):
-    def detail(self, id):
+class LocalityView(MethodView):
+    def get(self, id):
         locality = get_or_none(Locality, "id", id)
         if not locality:
             abort(status.HTTP_404_NOT_FOUND)
         return ({"locality": locality_schema.dump(locality)}, status.HTTP_200_OK)
-
-    def list(self):
-        localities = get_all(Locality)
-        return (
-            {"localities": locality_schema.dump(localities, many=True)},
-            status.HTTP_200_OK,
-        )
 
     def post(self):
         locality, existed = get_locality(request.json["address"])

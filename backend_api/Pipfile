@@ -18,6 +18,7 @@ flask-marshmallow = "*"
 marshmallow = "*"
 flask-api = "*"
 gunicorn = "*"
+pyyaml = "*"
 
 [requires]
 python_version = "3.7"

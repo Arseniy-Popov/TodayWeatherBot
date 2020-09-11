@@ -7,9 +7,9 @@ servers:
   - url: today-weather-api.arseniypopov.com
 
 tags:
-  - name: localities
+  - name: Localities
     description: ''
-  - name: forecast
+  - name: Forecast
 
 
 paths:
@@ -23,8 +23,8 @@ paths:
           type: number
     get:
       tags:
-        - localities
-      summary: Get locality by id.
+        - Localities
+      summary: Get locality by id
       responses:
         '200':
           description: Locality returned.
@@ -42,28 +42,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   /localities:
-    get:
-      tags:
-        - localities
-      summary: Get all localities.
-      responses:
-        '200':
-          description: List of localities returned.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Locality'
-        default:
-          description: Unexpected error.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
     post:
       tags:
-        - forecast
+        - Forecast
       summary: Supply free-form address input.
       requestBody:
         description: Free-from address input.
@@ -111,7 +92,7 @@ paths:
           type: number
     get:
       tags:
-        - forecast
+        - Forecast
       summary: Get forecast for locality.
       responses:
         '200':
