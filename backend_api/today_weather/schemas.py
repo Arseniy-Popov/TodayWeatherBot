@@ -10,7 +10,7 @@ class LocalitySchema(ma.Schema):
     class Meta:
         fields = ("name", "links", "lat", "lng")
 
-    links = ma.Hyperlinks({"self": ma.URLFor("localities", id="<id>")})
+    links = ma.Hyperlinks({"self": ma.URLFor("localities", id="<id>", _method="GET")})
 
 
 weather_schema = WeatherSchema()

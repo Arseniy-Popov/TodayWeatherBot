@@ -56,6 +56,7 @@ def get_weather(locality: Locality) -> Dict:
 
 class LocalityView(MethodView):
     def get(self, id):
+        print(url_for("localities", id=1))
         locality = get_or_none(Locality, "id", id)
         if not locality:
             abort(status.HTTP_404_NOT_FOUND)
