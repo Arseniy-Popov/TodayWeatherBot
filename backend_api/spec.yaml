@@ -3,9 +3,6 @@ info:
   title: 'Backend API for TodayWeather'
   version: ''
 
-servers:
-  - url: today-weather-api.arseniypopov.com
-
 tags:
   - name: Localities
     description: ''
