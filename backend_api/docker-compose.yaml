@@ -14,7 +14,7 @@ services:
         volumes:
             - ./today_weather/docs/:/app/today_weather/docs/
         expose:
-            - 8080
+            - 80
         depends_on:
             - db
         env_file:
@@ -23,7 +23,7 @@ services:
         build: ./nginx
         image: nginx:latest
         ports:
-            - 8080:80
+            - ${PORT}:80
         depends_on:
             - web
         volumes:
