@@ -2,10 +2,17 @@ openapi: 3.0.2
 info:
   title: 'Backend API for TodayWeather'
   version: ''
-
+  description: |
+    * the API, at [api.today-weather.arseniypopov.com](http://api.today-weather.arseniypopov.com), is documented in [redoc](http://api.today-weather.arseniypopov.com/docs/redoc.html) and [swagger](http://api.today-weather.arseniypopov.com/docs/swagger.html) formats
+    * built with `Flask` as a web framework and `marshmallow` for object serialization 
+    * utilizes `Google Geocoding API` to interpret free-form address input and `OpenWeatherMap API` to obtain weather forecasts
+    * uses `PostgreSQL` for caching the mapping from free-form address inputs to geographic localities with `SQLAlchemy` as an ORM
+    * deployed to `AWS EC2` with `nginx` and `gunicorn`; containerized with `Docker` and `docker-compose`  
+    
+    [chart](http://api.today-weather.arseniypopov.com/docs/chart.png)
+  
 tags:
   - name: Localities
-    description: ''
   - name: Forecast
 
 
@@ -30,10 +37,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/Locality'
               examples:
-                localityExample:
-                  $ref: '#/components/examples/localityExample'
+                localityExampleMoscow:
+                  $ref: '#/components/examples/localityExampleMoscow'
         '404':
           description: Locality not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        'default':
+          description: Unexpected error.
           content:
             application/json:
               schema:
@@ -54,6 +67,9 @@ paths:
                 address:
                   type: string
                   description: free-from address input
+            examples:
+              addressInputExampleMoscow:
+                $ref: '#/components/examples/addressInputExampleMoscow'
       responses:
         '200':
           description: Forecast for a known locality returned.
@@ -61,19 +77,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LocalityForecast'
+              examples:
+                localityForecastExampleMoscow:
+                  $ref: '#/components/examples/localityForecastExampleMoscow'
         '201':
           description: Forecast for a newly added locality returned.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LocalityForecast'
+              examples:
+                localityForecastExampleMoscow:
+                  $ref: '#/components/examples/localityForecastExampleMoscow'
         '400':
           description: The supplied address is either too general or too narrow.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        default:
+        'default':
           description: Unexpected error.
           content:
             application/json:
@@ -98,6 +120,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LocalityForecast'
+              examples:
+                localityForecastExampleMoscow:
+                  $ref: '#/components/examples/localityForecastExampleMoscow'
         '404':
           description: Locality not found.
           content:
@@ -161,7 +186,7 @@ components:
           type: string
           description: error message
   examples:
-    localityExample:
+    localityExampleMoscow:
       value:
         {
         "locality": {
@@ -172,4 +197,27 @@ components:
           "lng": 37.6172999,
           "name": "Moscow, Russia"
         }
+        }
+    localityForecastExampleMoscow:
+      value:
+        {
+            "forecast": {
+                "rain": true,
+                "snow": false,
+                "temp_max": 18.86,
+                "temp_min": 11.48
+            },
+            "locality": {
+                "lat": 55.755826,
+                "links": {
+                    "self": "/localities/1"
+                },
+                "lng": 37.6172999,
+                "name": "Moscow, Russia"
+            }
+        }
+    addressInputExampleMoscow:
+      value:
+       {
+        "address": "Moscow"
         }
