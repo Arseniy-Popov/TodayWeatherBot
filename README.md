@@ -6,7 +6,8 @@
 * uses `PostgreSQL` for caching the mapping from free-form address inputs to geographic localities with `SQLAlchemy` as an ORM
 * deployed to `AWS EC2` with `nginx` and `gunicorn`; containerized with `Docker` and `docker-compose`  
 
-[chart](http://api.today-weather.arseniypopov.com/docs/chart.png)
+
+![chart](http://api.today-weather.arseniypopov.com/docs/chart.png)
 
 * deployed to `Heroku` at https://t.me/AMP_TodayWeatherBot
 * built with `python-telegram-bot` as a wrapper around Telegram's API

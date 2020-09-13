@@ -1,6 +1,7 @@
 version: '3.8'
 volumes:
     postgres_data:
+    # docs:
 services:
     db:
         image: postgres:latest
@@ -11,8 +12,9 @@ services:
     web:
         build: ./
         image: today_weather:latest
-        volumes:
-            - ./today_weather/docs/:/app/today_weather/docs/
+        # volumes:
+        #     # - docs:/app/today_weather/docs/
+        #     - ./today_weather/docs/:/app/today_weather/docs/
         expose:
             - 80
         depends_on:
@@ -26,5 +28,6 @@ services:
             - ${PORT}:80
         depends_on:
             - web
-        volumes:
-            - ./today_weather/docs/:/app/today_weather/docs/
+        # volumes:
+        #     # - docs:/app/today_weather/docs/
+        #     - ./today_weather/docs/:/app/today_weather/docs/
