@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Swagger UI</title>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/swagger-ui.css" >
+  <style>
+    html
+    {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
+    *,
+    *:before,
+    *:after
+    {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin:0;
+      background: #fafafa;
+    }
+  </style>
+</head>
+<body>
+
+<div id="swagger-ui"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/swagger-ui-bundle.js"> </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/swagger-ui-standalone-preset.js"> </script>
+<script>
+window.onload = function() {
+
+  var spec = {"openapi": "3.0.2", "info": {"title": "Backend API for TodayWeather", "version": "", "description": "* the API, at [api.today-weather.arseniypopov.com](http://api.today-weather.arseniypopov.com), is documented in [redoc](http://api.today-weather.arseniypopov.com/docs/redoc.html) and [swagger](http://api.today-weather.arseniypopov.com/docs/swagger.html) formats\n* built with `Flask` as a web framework and `marshmallow` for object serialization \n* utilizes `Google Geocoding API` to interpret free-form address input and `OpenWeatherMap API` to obtain weather forecasts\n* uses `PostgreSQL` for caching the mapping from free-form address inputs to geographic localities with `SQLAlchemy` as an ORM\n* deployed to `AWS EC2` with `nginx` and `gunicorn`; containerized with `Docker` and `docker-compose`  \n\n<div style=\"width:50%\">![chart](http://api.today-weather.arseniypopov.com/docs/chart.png)</div>\n<img src=http://api.today-weather.arseniypopov.com/docs/chart.png alt=\"drawing\" width=\"1200\"/></img>\n"}, "tags": [{"name": "Localities"}, {"name": "Forecast"}], "paths": {"/localities/{locality_id}": {"parameters": [{"name": "locality_id", "in": "path", "required": true, "description": "", "schema": {"type": "number"}}], "get": {"tags": ["Localities"], "summary": "Get locality by id", "responses": {"200": {"description": "Locality returned.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Locality"}, "examples": {"localityExampleMoscow": {"$ref": "#/components/examples/localityExampleMoscow"}}}}}, "404": {"description": "Locality not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}, "default": {"description": "Unexpected error.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}}}}, "/localities": {"post": {"tags": ["Forecast"], "summary": "Supply free-form address input.", "requestBody": {"description": "Free-from address input.", "required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"address": {"type": "string", "description": "free-from address input"}}}, "examples": {"addressInputExampleMoscow": {"$ref": "#/components/examples/addressInputExampleMoscow"}}}}}, "responses": {"200": {"description": "Forecast for a known locality returned.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LocalityForecast"}, "examples": {"localityForecastExampleMoscow": {"$ref": "#/components/examples/localityForecastExampleMoscow"}}}}}, "201": {"description": "Forecast for a newly added locality returned.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LocalityForecast"}, "examples": {"localityForecastExampleMoscow": {"$ref": "#/components/examples/localityForecastExampleMoscow"}}}}}, "400": {"description": "The supplied address is either too general or too narrow.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}, "default": {"description": "Unexpected error.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}}}}, "/localities/{locality_id}/forecast": {"parameters": [{"name": "locality_id", "in": "path", "required": true, "description": "", "schema": {"type": "number"}}], "get": {"tags": ["Forecast"], "summary": "Get forecast for locality.", "responses": {"200": {"description": "Forecast returned.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LocalityForecast"}, "examples": {"localityForecastExampleMoscow": {"$ref": "#/components/examples/localityForecastExampleMoscow"}}}}}, "404": {"description": "Locality not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}, "default": {"description": "Unexpected error.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}}}}}, "components": {"schemas": {"Locality": {"title": "Locality", "type": "object", "description": "Locality.", "properties": {"links": {"type": "object", "properties": {"self": {"type": "string", "description": "link to the locality object"}}}, "name": {"type": "string"}, "lat": {"type": "number"}, "lng": {"type": "number"}}}, "LocalityForecast": {"title": "LocalityForecast", "description": "Weather forecast and locality.", "type": "object", "properties": {"locality": {"$ref": "#/components/schemas/Locality"}, "forecast": {"$ref": "#/components/schemas/Forecast"}}}, "Forecast": {"title": "Forecast", "type": "object", "description": "Weather forecast.", "properties": {"temp_min": {"type": "number"}, "temp_max": {"type": "number"}, "rain": {"type": "boolean"}, "snow": {"type": "boolean"}}}, "Error": {"title": "Error", "type": "object", "description": "Error description.", "properties": {"error": {"type": "string", "description": "error message"}}}}, "examples": {"localityExampleMoscow": {"value": {"locality": {"lat": 55.755826, "links": {"self": "/localities/1"}, "lng": 37.6172999, "name": "Moscow, Russia"}}}, "localityForecastExampleMoscow": {"value": {"forecast": {"rain": true, "snow": false, "temp_max": 18.86, "temp_min": 11.48}, "locality": {"lat": 55.755826, "links": {"self": "/localities/1"}, "lng": 37.6172999, "name": "Moscow, Russia"}}}, "addressInputExampleMoscow": {"value": {"address": "Moscow"}}}}};
+
+  // Build a system
+  const ui = SwaggerUIBundle({
+    spec: spec,
+    dom_id: '#swagger-ui',
+    deepLinking: true,
+    presets: [
+      SwaggerUIBundle.presets.apis,
+      SwaggerUIStandalonePreset
+    ],
+    plugins: [
+      SwaggerUIBundle.plugins.DownloadUrl
+    ],
+    layout: "StandaloneLayout"
+  })
+
+  window.ui = ui
+}
+</script>
+</body>
+
+</html>
