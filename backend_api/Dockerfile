@@ -8,6 +8,4 @@ COPY Pipfile* ./
 RUN pip install pipenv
 RUN pipenv install --system --deploy
 COPY . ./
-# RUN npx redoc-cli bundle -o today_weather/docs/redoc.html spec.yaml
-# RUN python swagger-yaml-to-html.py < ./spec.yaml > ./today_weather/docs/swagger.html
-CMD gunicorn today_weather.router:app --bind 0.0.0.0:8080
+CMD gunicorn today_weather.router:app --bind 0.0.0.0:8000

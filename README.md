@@ -1,4 +1,8 @@
-* a combibation of a backend API and a user-facing telegram bot
+#### About
+
+* a combination of a backend API and a user-facing telegram bot
+
+#### Built with
 
 * the API, at [api.today-weather.arseniypopov.com](http://api.today-weather.arseniypopov.com), is documented in [redoc](http://api.today-weather.arseniypopov.com/docs/redoc.html) and [swagger](http://api.today-weather.arseniypopov.com/docs/swagger.html) formats
 * built with `Flask` as a web framework and `marshmallow` for object serialization 
@@ -6,6 +10,7 @@
 * uses `PostgreSQL` for caching the mapping from free-form address inputs to geographic localities with `SQLAlchemy` as an ORM
 * deployed to `AWS EC2` with `nginx` and `gunicorn`; containerized with `Docker` and `docker-compose`  
 
+##### Sequence diagram for the backend API service
 
 ![chart](http://api.today-weather.arseniypopov.com/docs/chart.png)
 

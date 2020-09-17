@@ -3,6 +3,7 @@ import os
 
 import dotenv
 
+from today_weather import app
 
 dotenv.load_dotenv()
 CONFIG = configparser.ConfigParser()
@@ -17,6 +18,11 @@ if os.getenv("DOCKER"):
     DATABASE_URI = (
         f"postgresql+psycopg2://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
         f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+    )
+elif app.config["TESTING"]:
+    DATABASE_URI = (
+        f"postgresql+psycopg2://arseniypopov:{os.getenv('POSTGRES_PASSWORD')}"
+        f"@localhost:5432/{CONFIG['DB']['DB_NAME_TEST']}"
     )
 else:
     DATABASE_URI = (

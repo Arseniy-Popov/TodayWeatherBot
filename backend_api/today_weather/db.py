@@ -44,7 +44,3 @@ def set_obj_attr(model, field, identifier, attr, value):
     else:
         setattr(obj, attr, value)
     session.commit()
-
-
-# def get_or_create(model, **kwargs):
-#     if session.query(model).filter().one_or_none()

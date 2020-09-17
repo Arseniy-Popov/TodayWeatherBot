@@ -2,7 +2,6 @@ version: '3.8'
 volumes:
     postgres_data:
     static:
-    # ./today_weather/docs:
 services:
     db:
         image: postgres:latest
@@ -14,12 +13,9 @@ services:
         build: ./
         image: today_weather:latest
         volumes:
-            - static:/app/today_weather/docs/
-            # - static:/app/today_weather/docs/
-            # - ./today_weather/docs/:/app/today_weather/docs/
-        # #     - docs:/app/today_weather/docs/
+            - static:/app/today_weather/docs
         expose:
-            - 80
+            - 8000
         depends_on:
             - db
         env_file:
@@ -32,8 +28,4 @@ services:
         depends_on:
             - web
         volumes:
-            # - static:/app/today_weather/docs/
-            # # - web:/today_weather/docs
-            # - ./today_weather/docs/:/app/today_weather/docs/
-            # - docs:/app/today_weather/docs/
-            - static:/app/today_weather/docs/
+            - static:/app/today_weather/docs
