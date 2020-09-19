@@ -1,4 +1,4 @@
-from today_weather.router import app
+from today_weather.app import ma
 
 
 class WeatherSchema(ma.Schema):
@@ -10,8 +10,8 @@ class LocalitySchema(ma.Schema):
     class Meta:
         fields = ("name", "links", "lat", "lng")
 
-    links = app.ma.Hyperlinks(
-        {"self": app.ma.URLFor("localities", id="<id>", _method="GET")}
+    links = ma.Hyperlinks(
+        {"self": ma.URLFor("localities", id="<id>", _method="GET")}
     )
 
 

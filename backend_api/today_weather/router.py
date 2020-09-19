@@ -1,12 +1,8 @@
-from flask_marshmallow import Marshmallow
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from werkzeug.exceptions import HTTPException
 
-from today_weather import make_app
 from today_weather.config import CONFIG, get_db_uri
 from today_weather.exceptions import BaseAPIException
-from today_weather.views import LocalityForecastView, LocalityView
+from today_weather import views
 from today_weather.models import Base
 
 
@@ -21,20 +17,12 @@ def register_api(
     app.add_url_rule(
         f"{url}/<{pk_type}:{pk}>", view_func=view_func, methods=detail_methods
     )
-
-
-def make_session(app):
-    engine = create_engine(get_db_uri(app))
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    Base.metadata.create_all(engine)
-    return session
-
+    
 
 def init_app(app):
     register_api(
         app=app,
-        view=LocalityView,
+        view=views.LocalityView,
         endpoint="localities",
         url="/localities",
         list_methods=["POST"],
@@ -42,7 +30,7 @@ def init_app(app):
     )
     app.add_url_rule(
         "/localities/<int:id>/forecast",
-        view_func=LocalityForecastView.as_view("locality_forecast"),
+        view_func=views.LocalityForecastView.as_view("locality_forecast"),
     )
 
     @app.errorhandler(Exception)
@@ -55,12 +43,3 @@ def init_app(app):
         else:
             return {"error": CONFIG["ERROR"]["GENERAL"]}, 500
 
-    app.session = make_session(app)
-    app.ma = Marshmallow(app)
-    return app
-
-
-if __name__ == "__main__":
-    app = make_app()
-    app = init_app(app)
-    app.run(debug=True)

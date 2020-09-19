@@ -1,18 +1,31 @@
 import pytest
+from sqlalchemy.orm.session import close_all_sessions
 
-from today_weather import app
-from today_weather.router import init_app
+from today_weather.app import make_app, init_app, init_db, drop_db
+
 
 FORECAST_KEYS = ["rain", "snow", "temp_min", "temp_max"]
 LOCALITY_KEYS = ["lat", "lng", "name", "links"]
 
 
 @pytest.fixture
-def client():
-    app.config["TESTING"] = True
-    client = init_app(app)
-    yield client.test_client()
+def app():
+    app = make_app(testing=True)
+    session, engine = init_db(app)
+    close_all_sessions()
+    drop_db(engine)
+    app = init_app(app)
+    yield app
 
+
+@pytest.fixture
+def client(app):
+    yield app.test_client()
+
+
+@pytest.fixture
+def prepopulate_localities(client):
+    
 
 def assert_keys_match(obj, keys):
     assert len(obj) == len(keys)
@@ -20,19 +33,19 @@ def assert_keys_match(obj, keys):
         assert key in obj
 
 
-def test_post_address(client, address="москва"):
+def test_post_address(client, address="москва", expected="Moscow"):
     response = client.post("/localities", json={"address": address})
     assert response.status_code == 201
     response = response.get_json()
     assert_keys_match(response["forecast"], FORECAST_KEYS)
     assert_keys_match(response["locality"], LOCALITY_KEYS)
-    assert "Moscow" in response["locality"]["name"]
+    assert expected in response["locality"]["name"]
 
 
 def test_post_address_cached(client):
     test_post_address(client)
     response = client.post("/localities", json={"address": "москва"})
-    assert response.status_code == 201
+    assert response.status_code == 200
 
 
 @pytest.mark.parametrize(
@@ -40,9 +53,12 @@ def test_post_address_cached(client):
 )
 def test_get_address(client, url, locality):
     test_post_address(client)
-    test_post_address(client, address="new york")
+    test_post_address(client, address="new york", expected="New York")
     response = client.get(url)
     assert response.status_code == 200
     response = response.get_json()
     assert_keys_match(response["locality"], LOCALITY_KEYS)
     assert locality in response["locality"]["name"]
+
+
+def test_get_address_forecast(client, 
