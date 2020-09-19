@@ -1,34 +1,26 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from today_weather.config import DATABASE_URI
+from today_weather.config import get_db_uri
 from today_weather.models import AddressInput, Base, Locality, User
-
-
-engine = create_engine(DATABASE_URI)
-Session = sessionmaker(bind=engine)
-session = Session()
-Base.metadata.create_all(engine)
+from today_weather.router import app
 
 
 def get_or_none(model, field, value):
-    return session.query(model).filter(getattr(model, field) == value).one_or_none()
+    return app.session.query(model).filter(getattr(model, field) == value).one_or_none()
 
 
 def get_all(model):
-    return list(session.query(model))
+    return list(app.session.query(model))
 
 
 def create_object(model, **kwargs):
     obj = model(**kwargs)
-    session.add(obj)
-    session.commit()
+    app.session.add(obj)
+    app.session.commit()
     return obj
 
 
 def write(obj):
-    session.add(obj)
-    session.commit()
+    app.session.add(obj)
+    app.session.commit()
 
 
 def get_obj_attr(model, field, identifier, attr):
@@ -44,4 +36,4 @@ def set_obj_attr(model, field, identifier, attr, value):
         obj = create_object(model, **{field: identifier, attr: value})
     else:
         setattr(obj, attr, value)
-    session.commit()
+    app.session.commit()

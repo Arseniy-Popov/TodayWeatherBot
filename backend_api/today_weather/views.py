@@ -1,11 +1,10 @@
 from typing import Dict, Tuple
 
 from flask import abort, request, url_for
-from flask_api import status
 from flask.views import MethodView
+from flask_api import status
 
 from today_weather.config import CONFIG
-from today_weather.schemas import weather_schema, locality_schema
 from today_weather.db import (
     create_object,
     get_all,
@@ -23,6 +22,7 @@ from today_weather.exceptions import (
     WeatherParseError,
 )
 from today_weather.models import AddressInput, Locality, User
+from today_weather.schemas import locality_schema, weather_schema
 from today_weather.utils.geocoding import geocode
 from today_weather.utils.misc import log_reply
 from today_weather.utils.owmparser import OWMParser
