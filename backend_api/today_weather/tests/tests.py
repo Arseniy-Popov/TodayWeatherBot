@@ -24,8 +24,10 @@ def client(app):
 
 
 @pytest.fixture
-def prepopulate_localities(client):
-    
+def pre_post_localities(client):
+    client.post("/localities", json={"address": "москва"})
+    client.post("/localities", json={"address": "new york"})
+
 
 def assert_keys_match(obj, keys):
     assert len(obj) == len(keys)
@@ -48,12 +50,15 @@ def test_post_address_cached(client):
     assert response.status_code == 200
 
 
+def test_post_address_multiple(client):
+    test_post_address(client)
+    test_post_address(client, address="new york", expected="New York")
+
+
 @pytest.mark.parametrize(
     "url, locality", [("/localities/1", "Moscow"), ("/localities/2", "New York")]
 )
-def test_get_address(client, url, locality):
-    test_post_address(client)
-    test_post_address(client, address="new york", expected="New York")
+def test_get_address(client, pre_post_localities, url, locality):
     response = client.get(url)
     assert response.status_code == 200
     response = response.get_json()
@@ -61,4 +66,13 @@ def test_get_address(client, url, locality):
     assert locality in response["locality"]["name"]
 
 
-def test_get_address_forecast(client, 
+@pytest.mark.parametrize(
+    "url, locality", [("/localities/1", "Moscow"), ("/localities/2", "New York")]
+)
+def test_get_address_forecast(client, pre_post_localities, url, locality):
+    response = client.get(url + "/forecast")
+    assert response.status_code == 200
+    response = response.get_json()
+    assert_keys_match(response["locality"], LOCALITY_KEYS)
+    assert_keys_match(response["forecast"], FORECAST_KEYS)
+    assert locality in response["locality"]["name"]

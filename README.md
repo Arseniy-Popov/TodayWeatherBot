@@ -1,10 +1,11 @@
 #### About
 
 * a combination of a backend API and a user-facing telegram bot
+* the API, at [api.today-weather.arseniypopov.com](http://api.today-weather.arseniypopov.com), is documented in [redoc](http://api.today-weather.arseniypopov.com/docs/redoc.html) and [swagger](http://api.today-weather.arseniypopov.com/docs/swagger.html) formats
+* following a POST request to /localities with a free form address input, the server checks if "москва" maps to any of the saved localities. If not, it sends a request to geocode "москва" to Google Geocoding API and maps "москва" to the received coordinates. The coordinates, cached or obtained from Google Geocoding API, are sent to OpenWeatherMap API to obtain a weather forecast.   
 
 #### Built with
 
-* the API, at [api.today-weather.arseniypopov.com](http://api.today-weather.arseniypopov.com), is documented in [redoc](http://api.today-weather.arseniypopov.com/docs/redoc.html) and [swagger](http://api.today-weather.arseniypopov.com/docs/swagger.html) formats
 * built with `Flask` as a web framework and `marshmallow` for object serialization 
 * utilizes `Google Geocoding API` to interpret free-form address input and `OpenWeatherMap API` to obtain weather forecasts
 * uses `PostgreSQL` for caching the mapping from free-form address inputs to geographic localities with `SQLAlchemy` as an ORM

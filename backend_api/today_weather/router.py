@@ -17,7 +17,7 @@ def register_api(
     app.add_url_rule(
         f"{url}/<{pk_type}:{pk}>", view_func=view_func, methods=detail_methods
     )
-    
+
 
 def init_app(app):
     register_api(
@@ -42,4 +42,3 @@ def init_app(app):
             return {"error": exception.description}, exception.code
         else:
             return {"error": CONFIG["ERROR"]["GENERAL"]}, 500
-

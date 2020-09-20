@@ -7,11 +7,7 @@ engine = None
 
 
 def get_or_none(model, field, value):
-    return (
-        session.query(model)
-        .filter(getattr(model, field) == value)
-        .one_or_none()
-    )
+    return session.query(model).filter(getattr(model, field) == value).one_or_none()
 
 
 def get_all(model):

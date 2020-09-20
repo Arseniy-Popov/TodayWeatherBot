@@ -21,7 +21,7 @@ def init_db(app):
 
 def drop_db(engine):
     Base.metadata.drop_all(engine)
-    
+
 
 def make_app(testing=False):
     app = Flask(__name__)
@@ -33,6 +33,7 @@ def init_app(app):
     db.session, db.engine = init_db(app)
     Base.metadata.create_all(db.engine)
     from today_weather.router import init_app
+
     ma.init_app(app)
     init_app(app)
     return app
