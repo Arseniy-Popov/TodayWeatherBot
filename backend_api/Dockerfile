@@ -8,4 +8,4 @@ COPY Pipfile* ./
 RUN pip install pipenv
 RUN pipenv install --system --deploy
 COPY . ./
-CMD gunicorn today_weather.router:app --bind 0.0.0.0:8000
+CMD gunicorn "today_weather.app:create_app()" --bind 0.0.0.0:8000

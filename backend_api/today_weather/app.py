@@ -39,7 +39,12 @@ def init_app(app):
     return app
 
 
-if __name__ == "__main__":
+def create_app():
     app = make_app()
     app = init_app(app)
+    return app
+    
+
+if __name__ == "__main__":
+    app = create_app()
     app.run(debug=True)
