@@ -3,14 +3,20 @@ info:
   title: 'Backend API for TodayWeather'
   version: ''
   description: |
+    #### About
+    
+    * a combination of a backend API and a user-facing telegram bot
+    * returns a weather forecast for the remainder of the current day in response to a free form address input
     * the API, at [api.today-weather.arseniypopov.com](http://api.today-weather.arseniypopov.com), is documented in [redoc](http://api.today-weather.arseniypopov.com/docs/redoc.html) and [swagger](http://api.today-weather.arseniypopov.com/docs/swagger.html) formats
+    * following a POST request to /localities with a free form address input, the server checks if "москва" maps to any of the saved localities. If not, it sends a request to geocode "москва" to Google Geocoding API and maps "москва" to the received coordinates. The coordinates, cached or obtained from Google Geocoding API, are sent to OpenWeatherMap API to obtain a weather forecast, which is then processed and returned to the user  
+    
+    #### Built with
+    
     * built with `Flask` as a web framework and `marshmallow` for object serialization 
     * utilizes `Google Geocoding API` to interpret free-form address input and `OpenWeatherMap API` to obtain weather forecasts
     * uses `PostgreSQL` for caching the mapping from free-form address inputs to geographic localities with `SQLAlchemy` as an ORM
-    * deployed to `AWS EC2` with `nginx` and `gunicorn`; containerized with `Docker` and `docker-compose`  
-
-     ![sequence_digram](http://api.today-weather.arseniypopov.com/docs/chart.png)
- 
+    * tested with `pytest`
+    * deployed to `AWS EC2` with `nginx` and `gunicorn`; containerized with `Docker` and `docker-compose` 
  
 tags:
   - name: Localities
