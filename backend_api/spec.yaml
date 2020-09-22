@@ -62,7 +62,7 @@ paths:
     post:
       tags:
         - Forecast
-      summary: Supply free-form address input.
+      summary: Supply free-form address input
       requestBody:
         description: Free-from address input.
         required: true
@@ -119,7 +119,7 @@ paths:
     get:
       tags:
         - Forecast
-      summary: Get forecast for locality.
+      summary: Get forecast for locality
       responses:
         '200':
           description: Forecast returned.

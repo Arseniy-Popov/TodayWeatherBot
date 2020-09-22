@@ -28,7 +28,6 @@ def get_db_uri(app):
             f"postgresql+psycopg2://arseniypopov:{os.getenv('POSTGRES_PASSWORD')}"
             f"@localhost:5432/{CONFIG['DB']['DB_NAME']}"
         )
-    print(DATABASE_URI)
     return DATABASE_URI
 
 
