@@ -2,8 +2,9 @@ import pytest
 from unittest.mock import patch
 from sqlalchemy.orm.session import close_all_sessions
 
-from today_weather.app import make_app, init_app, init_db, drop_db
 from today_weather import views
+from today_weather.app import make_app, init_app, init_db, drop_db
+from today_weather.config import CONFIG
 
 
 FORECAST_KEYS = ["rain", "snow", "temp_min", "temp_max"]
@@ -47,11 +48,11 @@ def test_post_address(client, address="москва", expected="Moscow", order=1
     assert f"/localities/{order}" == response["locality"]["links"]["self"]
 
 
-def test_post_address_cached(client, monkeypatch, wascalled):
-    test_post_address(client)
-    with patch("today_weather.views.geocode") as mocked_func:
+def test_post_address_cached(client, monkeypatch):
+    client.post("/localities", json={"address": "москва"})
+    with patch("today_weather.views.geocode") as geocode:
         response = client.post("/localities", json={"address": "москва"})
-        mocked_func.assert_not_called()
+        geocode.assert_not_called()
         assert response.status_code == 200
 
 
@@ -81,3 +82,13 @@ def test_get_locality_forecast(client, pre_post_localities, url, locality):
     assert_keys_match(response["locality"], LOCALITY_KEYS)
     assert_keys_match(response["forecast"], FORECAST_KEYS)
     assert locality in response["locality"]["name"]
+
+
+def test_errors(client):
+    response = client.get("/localities/1")
+    assert response.status_code == 404
+    response = client.post("/localities", json={"address": "russia"})
+    assert response.status_code == 400
+    assert response.get_json()["error"] == CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"]
+    response = client.get("/localities/1/forecast")
+    assert response.status_code == 404

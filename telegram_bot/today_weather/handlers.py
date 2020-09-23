@@ -1,18 +1,16 @@
 import logging
 import sys
 from abc import ABC, abstractmethod
+from typing import Union, Tuple
+import requests
 
 from telegram import ReplyKeyboardMarkup
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-from today_weather.config import CONFIG, TELEGRAM_TOKEN
-from today_weather.db import (
-    create_object,
-    get_obj_attr,
-    get_or_none,
-    set_obj_attr,
-    write,
-)
-from today_weather.models import AddressInput, Locality, User
+from today_weather.config import CONFIG, TELEGRAM_TOKEN, DATABASE_URI
+from today_weather.models import Locality, User
+from today_weather.exceptions import BackendError
 from today_weather.utils.geocoding import AddressError, geocode
 from today_weather.utils.misc import log_reply
 from today_weather.utils.owmparser import OWMParser
@@ -21,15 +19,34 @@ from today_weather.utils.recommend import Recommender
 
 class HandlerBase(ABC):
     def __init__(self, update, context):
+        self.set_up_db()
         self.update = update
         self.context = context
         self.user_id = self.update.message.from_user.id
         self.user_message_text = self.update.message.text
+        self.user = self.get_or_create_user(self.user_id)
         self.process()
+        self.tear_down_db()
 
     @abstractmethod
     def process(self):
         pass
+
+    def set_up_db(self):
+        engine = create_engine(DATABASE_URI)
+        Session = sessionmaker(bind=engine)
+        self.session = Session()
+
+    def tear_down_db(self):
+        self.session.commit()
+
+    def get_or_create_user(self, id):
+        user = self.session.query(User).filter(User.id == id).one_or_none()
+        if not user:
+            user = User(id=id)
+            self.session.add(user)
+            self.session.commit()
+        return user
 
     def reply(self, **kwargs):
         self.update.message.reply_text(**kwargs)
@@ -45,11 +62,14 @@ class HandlerInput(HandlerBase):
     def process(self):
         logging.info(f"message from {self.user_id}: {self.user_message_text}")
         if self.user_message_text == CONFIG["KEYBOARD"]["REPEAT"]:
-            self._reply_with_forecast(self.latest_locality)
+            self._reply_with_forecast(Locality(self.user.latest_locality_id))
         elif self.user_message_text == CONFIG["KEYBOARD"]["SET_DEFAULT"]:
-            self.default_locality = self.latest_locality
+            self.user.default_locality_id, self.user.default_locality_name = (
+                self.user.latest_locality_id,
+                self.user.latest_locality_name,
+            )
             self.reply(
-                text=f"{self.default_locality.name} {CONFIG['MESSAGES']['SET_DEFAULT_CONF']}",
+                text=f"{self.user.default_locality_name} {CONFIG['MESSAGES']['SET_DEFAULT_CONF']}",
                 reply_markup=self._keyboard(),
             )
         elif CONFIG["KEYBOARD"]["GET_DEFAULT"] in self.user_message_text:
@@ -57,45 +77,38 @@ class HandlerInput(HandlerBase):
         else:
             self._reply_with_forecast(self.user_message_text)
 
-    def _reply_with_forecast(self, input):
+    def _reply_with_forecast(self, locality: Union[str, int]) -> None:
         try:
-            locality = (
-                input if isinstance(input, Locality) else self._get_locality(input)
-            )
-            weather = self._get_weather(locality)
+            forecast, locality = self._get_forecast(locality)
         except Exception as e:
-            logging.error(e.__class__.__name__)
+            logging.error(e)
             return
-        text = Recommender(weather).recommend() + "-" * 30 + f"\n{locality.name}"
+        text = Recommender(forecast)() + "-" * 30 + f"\n{locality['name']}"
         self.reply(text=text, reply_markup=self._keyboard())
-        self.latest_locality = locality
+        self.user.latest_locality_id, self.user.latest_locality_name = (
+            locality["id"],
+            locality["name"],
+        )
 
-    def _get_locality(self, input):
-        cached_input = get_or_none(model=AddressInput, field="input", value=input)
-        if cached_input is None or cached_input.is_expired():
-            try:
-                address, lat, lng = geocode(input)
-            except AddressError as e:
-                self.reply(text=CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
-                raise e
-            except Exception as e:
-                self.reply(text=CONFIG["ERROR"]["GEOCODING_GENERAL"])
-                raise e
-            locality = get_or_none(Locality, "name", address)
-            if not locality:
-                locality = create_object(model=Locality, name=address, lat=lat, lng=lng)
-            write(AddressInput(input=input, locality=locality))
+    def _get_forecast(self, locality: Union[Locality, str]) -> Tuple[dict, dict]:
+        if isinstance(locality, Locality):
+            response = requests.get(
+                CONFIG["BACKEND_API"]["URL"] + f"/localities/{Locality.id}"
+            )
         else:
-            locality = cached_input.locality
-        return locality
-
-    def _get_weather(self, locality):
-        try:
-            today_weather = OWMParser().get_today_weather(locality.lat, locality.lng)
-            return today_weather
-        except Exception as e:
-            self.reply(text=CONFIG["ERROR"]["OWM_GENERAL"])
-            raise e
+            response = requests.post(
+                CONFIG["BACKEND_API"]["URL"] + "/localities", json={"address": locality}
+            )
+        if "error" not in response.json():
+            forecast, locality = (
+                response.json()["forecast"],
+                response.json()["locality"],
+            )
+            return forecast, locality
+        else:
+            error = response.json()["error"]
+            self.reply(text=error)
+            raise BackendError(error)
 
     def _keyboard(self):
         _keyboard = [

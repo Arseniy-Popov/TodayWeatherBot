@@ -1,6 +1,11 @@
 class Recommender:
-    def __init__(self, aggregate_weather):
-        self.temp_min, self.temp_max, self.rain, self.snow = aggregate_weather
+    def __init__(self, weather):
+        self.temp_min, self.temp_max, self.rain, self.snow = (
+            weather["temp_min"],
+            weather["temp_max"],
+            weather["self.rain"],
+            weather["self.snow"],
+        )
         self.temp_min, self.temp_max = round(self.temp_min), round(self.temp_max)
         self.result = []
 
@@ -21,7 +26,7 @@ class Recommender:
         if self.rain:
             self.result.append(f"Take your umbrella. \n")
 
-    def recommend(self):
+    def __call__(self):
         self._temparature_range()
         self._rain_snow()
         self._apparel()
