@@ -1,9 +1,9 @@
-import pytest
 import requests
 
+import pytest
 from today_weather.config import CONFIG
-from .tests_integration import FORECAST_KEYS, LOCALITY_KEYS, assert_keys_match
 
+from .tests_integration import FORECAST_KEYS, LOCALITY_KEYS, assert_keys_match
 
 URL = CONFIG["TESTS"]["URL_DEPLOYED"]
 

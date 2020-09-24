@@ -1,17 +1,17 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Union, Tuple
-import requests
+from typing import Tuple, Union
 
-from telegram import ReplyKeyboardMarkup
+import requests
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from telegram import ReplyKeyboardMarkup
 
 from today_weather.config import CONFIG, DATABASE_URI
-from today_weather.models import Base, Locality, User
 from today_weather.exceptions import BackendError
-from today_weather.utils.recommend import Recommender
+from today_weather.models import Base, Locality, User
 from today_weather.utils.misc import log_reply
+from today_weather.utils.recommend import Recommender
 
 
 class HandlerBase(ABC):

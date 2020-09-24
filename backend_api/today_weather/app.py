@@ -1,12 +1,11 @@
-from flask import Flask
-from flask_marshmallow import Marshmallow
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from flask import Flask
+from flask_marshmallow import Marshmallow
 from today_weather import db
 from today_weather.config import get_db_uri
 from today_weather.models import Base
-
 
 ma = Marshmallow()
 

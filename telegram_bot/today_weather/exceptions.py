@@ -14,6 +14,6 @@ class BackendError(CustomError):
 
 def custom_exception_handler(update, context):
     if isinstance(context.error, CustomError):
-        logging.error(f"{context.error.__class__.__name__}: {context.error.error}")        
+        logging.error(f"{context.error.__class__.__name__}: {context.error.error}")
     else:
         raise context.error

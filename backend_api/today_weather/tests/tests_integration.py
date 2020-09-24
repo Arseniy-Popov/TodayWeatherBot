@@ -1,11 +1,11 @@
-import pytest
 from unittest.mock import patch
+
 from sqlalchemy.orm.session import close_all_sessions
 
+import pytest
 from today_weather import views
-from today_weather.app import make_app, init_app, init_db, drop_db
+from today_weather.app import drop_db, init_app, init_db, make_app
 from today_weather.config import CONFIG
-
 
 FORECAST_KEYS = ["rain", "snow", "temp_min", "temp_max"]
 LOCALITY_KEYS = ["lat", "lng", "name", "links"]

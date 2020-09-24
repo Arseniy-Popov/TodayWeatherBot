@@ -1,13 +1,16 @@
 import argparse
 import logging
 
+import click
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
 from today_weather.config import get_token
-from today_weather.handlers import HandlerInput, HandlerWelcome
 from today_weather.exceptions import custom_exception_handler
+from today_weather.handlers import HandlerInput, HandlerWelcome
 
 
+@click.command()
+@click.option("--testing", default=False)
 def main(testing=False):
     logging.basicConfig(level=logging.INFO)
     updater = Updater(get_token(testing), use_context=True)
@@ -25,6 +28,4 @@ def main(testing=False):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--testing", default=False)
-    main(testing=parser.parse_args())
+    main()

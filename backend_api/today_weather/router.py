@@ -1,9 +1,8 @@
-from werkzeug.exceptions import HTTPException
-
+from today_weather import views
 from today_weather.config import CONFIG, get_db_uri
 from today_weather.exceptions import BaseAPIException
-from today_weather import views
 from today_weather.models import Base
+from werkzeug.exceptions import HTTPException
 
 
 def register_api(

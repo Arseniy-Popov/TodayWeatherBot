@@ -1,7 +1,6 @@
 from today_weather.config import get_db_uri
 from today_weather.models import AddressInput, Base, Locality, User
 
-
 session = None
 engine = None
 

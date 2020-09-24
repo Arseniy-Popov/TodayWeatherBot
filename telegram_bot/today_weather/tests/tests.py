@@ -3,11 +3,11 @@ import shlex
 import subprocess
 import unittest
 
-import psutil
-from pyrogram import Client, Filters, MessageHandler
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+import psutil
+from pyrogram import Client, Filters, MessageHandler
 from today_weather.config import (
     CONFIG,
     DATABASE_URI,

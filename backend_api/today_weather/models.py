@@ -6,7 +6,6 @@ from sqlalchemy.orm import relationship
 
 from today_weather.config import CONFIG
 
-
 Base = declarative_base()
 
 

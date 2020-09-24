@@ -3,7 +3,6 @@ from typing import Dict, Tuple
 from flask import abort, request, url_for
 from flask.views import MethodView
 from flask_api import status
-
 from today_weather.config import CONFIG
 from today_weather.db import (
     create_object,
