@@ -1,5 +1,4 @@
 import logging
-import sys
 from abc import ABC, abstractmethod
 from typing import Union, Tuple
 import requests
@@ -8,13 +7,11 @@ from telegram import ReplyKeyboardMarkup
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from today_weather.config import CONFIG, TELEGRAM_TOKEN, DATABASE_URI
-from today_weather.models import Locality, User
+from today_weather.config import CONFIG, DATABASE_URI
+from today_weather.models import Base, Locality, User
 from today_weather.exceptions import BackendError
-from today_weather.utils.geocoding import AddressError, geocode
-from today_weather.utils.misc import log_reply
-from today_weather.utils.owmparser import OWMParser
 from today_weather.utils.recommend import Recommender
+from today_weather.utils.misc import log_reply
 
 
 class HandlerBase(ABC):
@@ -36,6 +33,7 @@ class HandlerBase(ABC):
         engine = create_engine(DATABASE_URI)
         Session = sessionmaker(bind=engine)
         self.session = Session()
+        Base.metadata.create_all(engine)
 
     def tear_down_db(self):
         self.session.commit()
@@ -54,12 +52,12 @@ class HandlerBase(ABC):
 
 
 class HandlerWelcome(HandlerBase):
-    def process(self):
+    def process(self) -> None:
         self.reply(text=CONFIG["MESSAGES"]["WELCOME"])
 
 
 class HandlerInput(HandlerBase):
-    def process(self):
+    def process(self) -> None:
         logging.info(f"message from {self.user_id}: {self.user_message_text}")
         if self.user_message_text == CONFIG["KEYBOARD"]["REPEAT"]:
             self._reply_with_forecast(Locality(self.user.latest_locality_id))
@@ -73,27 +71,23 @@ class HandlerInput(HandlerBase):
                 reply_markup=self._keyboard(),
             )
         elif CONFIG["KEYBOARD"]["GET_DEFAULT"] in self.user_message_text:
-            self._reply_with_forecast(self.default_locality)
+            self._reply_with_forecast(Locality(self.user.default_locality_id))
         else:
             self._reply_with_forecast(self.user_message_text)
 
     def _reply_with_forecast(self, locality: Union[str, int]) -> None:
-        try:
-            forecast, locality = self._get_forecast(locality)
-        except Exception as e:
-            logging.error(e)
-            return
+        forecast, locality = self._get_forecast(locality)
         text = Recommender(forecast)() + "-" * 30 + f"\n{locality['name']}"
         self.reply(text=text, reply_markup=self._keyboard())
         self.user.latest_locality_id, self.user.latest_locality_name = (
-            locality["id"],
+            locality["links"]["self"][len("/localities/") :],
             locality["name"],
         )
 
     def _get_forecast(self, locality: Union[Locality, str]) -> Tuple[dict, dict]:
         if isinstance(locality, Locality):
             response = requests.get(
-                CONFIG["BACKEND_API"]["URL"] + f"/localities/{Locality.id}"
+                CONFIG["BACKEND_API"]["URL"] + f"/localities/{locality.id}/forecast"
             )
         else:
             response = requests.post(
@@ -115,38 +109,6 @@ class HandlerInput(HandlerBase):
             [CONFIG["KEYBOARD"]["REPEAT"]],
             [CONFIG["KEYBOARD"]["SET_DEFAULT"]],
         ]
-        if self.default_locality is not None:
-            _keyboard.append([f"Default: {self.default_locality.name}"])
+        if self.user.default_locality_name is not None:
+            _keyboard.append([f"Default: {self.user.default_locality_name}"])
         return ReplyKeyboardMarkup(_keyboard, resize_keyboard=True)
-
-    @property
-    def default_locality(self):
-        return get_obj_attr(
-            model=User, field="id", identifier=self.user_id, attr="default_locality"
-        )
-
-    @default_locality.setter
-    def default_locality(self, locality):
-        set_obj_attr(
-            model=User,
-            field="id",
-            identifier=self.user_id,
-            attr="default_locality",
-            value=locality,
-        )
-
-    @property
-    def latest_locality(self):
-        return get_obj_attr(
-            model=User, field="id", identifier=self.user_id, attr="latest_locality"
-        )
-
-    @latest_locality.setter
-    def latest_locality(self, locality):
-        set_obj_attr(
-            model=User,
-            field="id",
-            identifier=self.user_id,
-            attr="latest_locality",
-            value=locality,
-        )

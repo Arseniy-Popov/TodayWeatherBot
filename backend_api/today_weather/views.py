@@ -21,12 +21,11 @@ from today_weather.exceptions import (
     NotFoundError,
     WeatherParseError,
 )
-from today_weather.models import AddressInput, Locality, User
+from today_weather.models import AddressInput, Locality
 from today_weather.schemas import locality_schema, weather_schema
 from today_weather.utils.geocoding import geocode
 from today_weather.utils.misc import log_reply
 from today_weather.utils.owmparser import OWMParser
-from today_weather.utils.recommend import Recommender
 
 
 def get_locality(input: str) -> Tuple[Locality, bool]:

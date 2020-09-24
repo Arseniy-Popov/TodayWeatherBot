@@ -3,8 +3,8 @@ class Recommender:
         self.temp_min, self.temp_max, self.rain, self.snow = (
             weather["temp_min"],
             weather["temp_max"],
-            weather["self.rain"],
-            weather["self.snow"],
+            weather["rain"],
+            weather["snow"],
         )
         self.temp_min, self.temp_max = round(self.temp_min), round(self.temp_max)
         self.result = []
