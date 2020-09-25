@@ -69,7 +69,7 @@ class TestTodayWeather(unittest.TestCase):
         # restart the bot
         if not TEST_DEPLOYED:
             self.subprocess = subprocess.Popen(
-                shlex.split("pipenv run python -m today_weather"),
+                shlex.split("pipenv run python -m today_weather.bot"),
                 cwd=os.getcwd(),
                 preexec_fn=os.setsid,
             )
@@ -88,6 +88,9 @@ class TestTodayWeather(unittest.TestCase):
             Base.metadata.drop_all(self.engine)
 
     # Utilities ------------------------------------------------------------------------
+
+    def _send_message(self, message):
+        self._send_message(message)
 
     def _await_response(self):
         while self.response == Empty or self.response == self.last_response:
@@ -108,13 +111,13 @@ class TestTodayWeather(unittest.TestCase):
     # Tests ----------------------------------------------------------------------------
 
     def test_welcome(self):
-        self.app.send_message(self.bot, "/start")
+        self._send_message("/start")
         self._await_response()
         self.assertEqual(self.response.text, CONFIG["MESSAGES"]["WELCOME"])
 
     def test_address(self, address="New York"):
         self.address = address
-        self.app.send_message(self.bot, address)
+        self._send_message(address)
         self._await_response()
         self._assertResponseContains("\u00B0C", self.address)
         self._assertKeyboardContains(
@@ -123,55 +126,33 @@ class TestTodayWeather(unittest.TestCase):
 
     def test_address_wrong(self):
         with self.subTest("narrow"):
-            self.app.send_message(self.bot, "Times Square")
+            self._send_message("Times Square")
             self._await_response()
             self._assertResponseEquals(CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
         with self.subTest("wide"):
-            self.app.send_message(self.bot, "USA")
+            self._send_message("USA")
             self._await_response()
             self._assertResponseEquals(CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
 
     def test_repeat(self):
         self.test_address()
-        self.app.send_message(self.bot, CONFIG["KEYBOARD"]["REPEAT"])
+        self._send_message(CONFIG["KEYBOARD"]["REPEAT"])
         self._await_response()
         self._assertResponseContains("\u00B0C", self.address)
 
     def test_set_default(self, address="Moscow"):
         self.default_address = address
         self.test_address(self.default_address)
-        self.app.send_message(self.bot, CONFIG["KEYBOARD"]["SET_DEFAULT"])
+        self._send_message(CONFIG["KEYBOARD"]["SET_DEFAULT"])
         self._await_response()
         self._assertResponseEquals(CONFIG["MESSAGES"]["SET_DEFAULT_CONF"])
 
     def test_get_default(self):
         self.test_set_default()
         self.test_address()
-        self.app.send_message(self.bot, CONFIG["KEYBOARD"]["GET_DEFAULT"])
+        self._send_message(CONFIG["KEYBOARD"]["GET_DEFAULT"])
         self._await_response()
         self._assertResponseContains("\u00B0C", self.default_address)
-
-    @unittest.skipIf(TEST_DEPLOYED, "Only for test database.")
-    def test_address_input_cached(self):
-        address_input_1, address_input_2 = "New York", "Moscow"
-        self.app.send_message(self.bot, address_input_1)
-        self._await_response()
-        self.app.send_message(self.bot, address_input_2)
-        self._await_response()
-        # input for 'New York' now points to 'Moscow' locality
-        self.session.query(AddressInput).filter(
-            AddressInput.input == address_input_1
-        ).one_or_none().locality = (
-            self.session.query(AddressInput)
-            .filter(AddressInput.input == address_input_2)
-            .one_or_none()
-            .locality
-        )
-        self.session.commit()
-        self.app.send_message(self.bot, address_input_1)
-        self._await_response()
-        # assert entering 'New York' returns results for 'Moscow'
-        self._assertResponseContains("\u00B0C", address_input_2)
 
 
 if __name__ == "__main__":
