@@ -3,11 +3,10 @@ import shlex
 import subprocess
 import unittest
 
+from pyrogram import Client, Filters, MessageHandler
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import psutil
-from pyrogram import Client, Filters, MessageHandler
 from today_weather.config import (
     CONFIG,
     DATABASE_URI,
@@ -17,7 +16,7 @@ from today_weather.config import (
     TEST_DEPLOYED,
     USERNAME_BOT_TO_TEST,
 )
-from today_weather.models import AddressInput, Base
+from today_weather.models import Base
 
 
 class Empty:
@@ -69,7 +68,7 @@ class TestTodayWeather(unittest.TestCase):
         # restart the bot
         if not TEST_DEPLOYED:
             self.subprocess = subprocess.Popen(
-                shlex.split("pipenv run python -m today_weather.bot"),
+                shlex.split("pipenv run python -m today_weather.bot --testing True"),
                 cwd=os.getcwd(),
                 preexec_fn=os.setsid,
             )
@@ -90,7 +89,7 @@ class TestTodayWeather(unittest.TestCase):
     # Utilities ------------------------------------------------------------------------
 
     def _send_message(self, message):
-        self._send_message(message)
+        self.app.send_message(self.bot, message)
 
     def _await_response(self):
         while self.response == Empty or self.response == self.last_response:
@@ -128,11 +127,11 @@ class TestTodayWeather(unittest.TestCase):
         with self.subTest("narrow"):
             self._send_message("Times Square")
             self._await_response()
-            self._assertResponseEquals(CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
+            self._assertResponseContains("too general or too narrow")
         with self.subTest("wide"):
             self._send_message("USA")
             self._await_response()
-            self._assertResponseEquals(CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"])
+            self._assertResponseContains("too general or too narrow")
 
     def test_repeat(self):
         self.test_address()

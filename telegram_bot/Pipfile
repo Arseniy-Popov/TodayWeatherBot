@@ -12,6 +12,7 @@ python-telegram-bot = "*"
 psycopg2 = "*"
 sqlalchemy = "*"
 click = "*"
+pyrogram = "==0.18.0"
 
 [requires]
 python_version = "3.7"

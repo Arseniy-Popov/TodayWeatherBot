@@ -1,1 +1,1 @@
-worker: python -m today_weather
+worker: python -m today_weather.bot
