@@ -4,7 +4,7 @@
 * returns a weather forecast for the remainder of the current day in response to a free form address input
 * the backend API, at [api.today-weather.arseniypopov.com](http://api.today-weather.arseniypopov.com), is documented in [redoc](http://api.today-weather.arseniypopov.com/docs/redoc.html) and [swagger](http://api.today-weather.arseniypopov.com/docs/swagger.html) formats
 * following a POST request to /localities with a free form address input, the server checks if "москва" maps to any of the saved localities. If not, it sends a request to geocode "москва" to Google Geocoding API and maps "москва" to the received locality. The coordinates of the locality, cached or obtained from Google Geocoding API, are sent to OpenWeatherMap API to obtain a weather forecast. It is then processed and returned to the user, together with a reference, /localities/{id}, to the locality
-* the telegram bot, at https://t.me/AMP_TodayWeatherBot, feeds off the backend API, and supports free form address input, setting a default locality, and requesting forecasts for latest and default localities
+* the telegram bot, at [TodayWeatherBot](https://t.me/AMP_TodayWeatherBot), feeds off the backend API, and supports free form address input, setting a default locality, and requesting forecasts for latest and default localities
 
 #### Built with
 
@@ -18,11 +18,6 @@
 #### Sequence diagram for the backend API service
 
 ![chart](http://api.today-weather.arseniypopov.com/docs/chart.png)
-
-* deployed to `Heroku` at 
-* built with `python-telegram-bot` as a wrapper around Telegram's API
-* applies `unittest` as a testing framework and `pyrogram` as Telegram API wrapper for integration testing allowing
-to test both the development version (with database and client resets between tests) and the deployed version
 
 - TodayWeatherBot
    - [Pipfile](Pipfile)
