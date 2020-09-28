@@ -4,8 +4,10 @@ from sqlalchemy.orm.session import close_all_sessions
 
 import pytest
 from today_weather import views
-from today_weather.app import drop_db, init_app, init_db, make_app
+from today_weather.app import init_app, init_db, make_app
 from today_weather.config import CONFIG
+from today_weather.models import Base
+
 
 FORECAST_KEYS = ["rain", "snow", "temp_min", "temp_max"]
 LOCALITY_KEYS = ["lat", "lng", "name", "links"]
@@ -14,9 +16,10 @@ LOCALITY_KEYS = ["lat", "lng", "name", "links"]
 @pytest.fixture
 def app():
     app = make_app(testing=True)
+    # drop db before each test
     session, engine = init_db(app)
     close_all_sessions()
-    drop_db(engine)
+    Base.metadata.drop_all(engine)
     app = init_app(app)
     yield app
 

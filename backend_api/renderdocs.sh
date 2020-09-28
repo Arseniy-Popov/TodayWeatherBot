@@ -1,2 +1,2 @@
-npx redoc-cli bundle -o today_weather/docs/redoc.html spec.yaml
-python swagger-yaml-to-html.py < ./spec.yaml > ./today_weather/docs/swagger.html
+npx redoc-cli bundle -o docs/redoc.html spec.yaml
+python swagger-yaml-to-html.py < ./spec.yaml > ./docs/swagger.html

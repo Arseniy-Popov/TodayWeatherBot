@@ -1,33 +1,29 @@
+from werkzeug.exceptions import HTTPException
+
 from today_weather.config import CONFIG
 
 
-class BaseAPIException(Exception):
-    status_code = 500
-    pass
+class BaseCustomException(HTTPException):
+    code = 500
 
 
-class LocalityError(BaseAPIException):
-    error_message = CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"]
-    status_code = 400
-    pass
+class LocalityError(BaseCustomException):
+    description = CONFIG["ERROR"]["GEOCODING_NOT_LOCALITY"]
+    code = 400
 
 
-class GeocodingError(BaseAPIException):
-    error_message = CONFIG["ERROR"]["GENERAL"]
-    pass
+class GeocodingError(BaseCustomException):
+    description = CONFIG["ERROR"]["GENERAL"]
 
 
-class WeatherParseError(BaseAPIException):
-    error_message = CONFIG["ERROR"]["OWM_GENERAL"]
-    pass
+class WeatherParseError(BaseCustomException):
+    description = CONFIG["ERROR"]["OWM_GENERAL"]
 
 
-class GeneralError(BaseAPIException):
-    error_message = CONFIG["ERROR"]["GENERAL"]
-    pass
+class GeneralError(BaseCustomException):
+    description = CONFIG["ERROR"]["GENERAL"]
 
 
-class NotFoundError(BaseAPIException):
-    error_message = CONFIG["ERROR"]["NOT_FOUND"]
-    status_code = 404
-    pass
+class NotFoundError(BaseCustomException):
+    description = CONFIG["ERROR"]["NOT_FOUND"]
+    code = 404
