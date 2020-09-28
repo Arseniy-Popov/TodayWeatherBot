@@ -3,6 +3,7 @@ import os
 
 import dotenv
 
+
 dotenv.load_dotenv()
 CONFIG = configparser.ConfigParser()
 CONFIG.read("config.ini")

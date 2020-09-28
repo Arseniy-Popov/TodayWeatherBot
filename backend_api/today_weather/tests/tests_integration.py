@@ -1,12 +1,14 @@
 from unittest.mock import patch
 
+import pytest
 from sqlalchemy.orm.session import close_all_sessions
 
-import pytest
-from today_weather import views
 from today_weather.app import init_app, init_db, make_app
 from today_weather.config import CONFIG
 from today_weather.models import Base
+
+
+# Fixtures -----------------------------------------------------------------------------
 
 
 FORECAST_KEYS = ["rain", "snow", "temp_min", "temp_max"]
@@ -17,9 +19,7 @@ LOCALITY_KEYS = ["lat", "lng", "name", "links"]
 def app():
     app = make_app(testing=True)
     # drop db before each test
-    session, engine = init_db(app)
-    close_all_sessions()
-    Base.metadata.drop_all(engine)
+    drop_db(app)
     app = init_app(app)
     yield app
 
@@ -35,10 +35,22 @@ def pre_post_localities(client):
     client.post("/localities", json={"address": "new york"})
 
 
+# Utilities ----------------------------------------------------------------------------
+
+
+def drop_db(app):
+    session, engine = init_db(app)
+    close_all_sessions()
+    Base.metadata.drop_all(engine)
+
+
 def assert_keys_match(obj, keys):
     assert len(obj) == len(keys)
     for key in keys:
         assert key in obj
+
+
+# POST /localities ---------------------------------------------------------------------
 
 
 def test_post_address(client, address="москва", expected="Moscow", order=1):
@@ -64,6 +76,9 @@ def test_post_address_multiple(client):
     test_post_address(client, address="new york", expected="New York", order=2)
 
 
+# GET /localities/<id> -----------------------------------------------------------------
+
+
 @pytest.mark.parametrize(
     "url, locality", [("/localities/1", "Moscow"), ("/localities/2", "New York")]
 )
@@ -73,6 +88,9 @@ def test_get_locality(client, pre_post_localities, url, locality):
     response = response.get_json()
     assert_keys_match(response["locality"], LOCALITY_KEYS)
     assert locality in response["locality"]["name"]
+
+
+# GET /localities/<id>/forecast --------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -85,6 +103,9 @@ def test_get_locality_forecast(client, pre_post_localities, url, locality):
     assert_keys_match(response["locality"], LOCALITY_KEYS)
     assert_keys_match(response["forecast"], FORECAST_KEYS)
     assert locality in response["locality"]["name"]
+
+
+# Other --------------------------------------------------------------------------------
 
 
 def test_errors(client):

@@ -1,26 +1,23 @@
-from typing import Dict, Tuple
+from typing import Tuple
 
-from flask import abort, request, url_for
+from flask import abort, request
 from flask.views import MethodView
 from flask_api import status
-from today_weather.db import (
-    get_or_none,
-    write,
-)
-from today_weather.exceptions import (
-    WeatherParseError,
-)
+
+from today_weather.db import get_or_none, write
+from today_weather.exceptions import WeatherParseError
 from today_weather.models import AddressInput, Locality
 from today_weather.schemas import locality_schema, weather_schema
 from today_weather.utils.geocoding import geocode
-from today_weather.utils.owmparser import OWMParser
+from today_weather.utils.owmparser import OWMParser, WeatherForecast
 
 
 def _get_locality(input: str) -> Tuple[Locality, bool]:
     """
-    Checks if the free-form address input is mapped to any of the saved localities.
-    If not, requests the address to be geocoded and maps the address input to the
-    obtained locality.
+    Get locality corresponding to the given free-form address input. Checks if
+    the free-form address input is mapped to any of the saved localities.
+    If not, requests the address to be geocoded and maps the address input
+    to the obtained locality.
     """
     cached_input = get_or_none(model=AddressInput, field="input", value=input)
     if cached_input is None or cached_input.is_expired():
@@ -38,20 +35,23 @@ def _get_locality(input: str) -> Tuple[Locality, bool]:
     return locality, existed
 
 
-def _get_weather(locality: Locality) -> Dict:
+def _get_weather(locality: Locality) -> WeatherForecast:
     """
     Get weather forecast for the locality.
     """
     try:
         today_weather = OWMParser()(locality.lat, locality.lng)
-        return today_weather
     except Exception:
         raise WeatherParseError()
+    return today_weather
 
 
 class LocalityView(MethodView):
+    """
+    View for POST /localities and GET /localities/<id>.
+    """
+
     def get(self, id):
-        print(url_for("localities", id=1))
         locality = get_or_none(Locality, "id", id)
         if not locality:
             abort(status.HTTP_404_NOT_FOUND)
@@ -70,6 +70,10 @@ class LocalityView(MethodView):
 
 
 class LocalityForecastView(MethodView):
+    """
+    View for GET /localities/<id>/forecast.
+    """
+
     def get(self, id):
         locality = get_or_none(Locality, "id", id)
         if not locality:

@@ -1,8 +1,8 @@
+from flask import Flask
+from flask_marshmallow import Marshmallow
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from flask import Flask
-from flask_marshmallow import Marshmallow
 from today_weather import db
 from today_weather.config import get_db_uri
 from today_weather.models import Base
@@ -25,6 +25,7 @@ def init_app(app):
     Builds up instance of app.
     """
     db.session, db.engine = init_db(app)
+    Base.metadata.create_all(db.engine)
     # to prevent circular imports
     from today_weather.router import add_routes
 
@@ -40,7 +41,6 @@ def init_db(app):
     engine = create_engine(get_db_uri(app))
     Session = sessionmaker(bind=engine)
     session = Session()
-    Base.metadata.create_all(engine)
     return session, engine
 
 

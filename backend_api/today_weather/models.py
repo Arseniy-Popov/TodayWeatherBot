@@ -6,10 +6,15 @@ from sqlalchemy.orm import relationship
 
 from today_weather.config import CONFIG
 
+
 Base = declarative_base()
 
 
 class AddressInput(Base):
+    """
+    Maps free form address inputs to locality objects.
+    """
+
     __tablename__ = "address_inputs"
     id = Column(Integer, primary_key=True)
     input = Column(String, unique=True, nullable=False)

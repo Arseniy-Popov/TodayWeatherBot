@@ -1,6 +1,3 @@
-from today_weather.models import AddressInput, Base, Locality
-
-
 session = None
 engine = None
 

@@ -1,21 +1,22 @@
 import logging
-import os
+from typing import Dict, Tuple
 
-import dotenv
 import requests
 
-from today_weather.config import GOOG_MAPS_API_KEY
+from today_weather.config import CONFIG, GOOG_MAPS_API_KEY
 from today_weather.exceptions import GeocodingError, LocalityError
 
 
-def _make_request(address):
-    URL = "https://maps.googleapis.com/maps/api/geocode/json"
-    params = {"address": address, "key": GOOG_MAPS_API_KEY, "language": "en"}
+def _make_request(address: str) -> Dict:
+    """
+    Makes a request to Geocoding API.
+    """
     logging.info(f"request to Geocoding API: {address}")
-    return requests.get(URL, params=params).json()
+    params = {"address": address, "key": GOOG_MAPS_API_KEY, "language": "en"}
+    return requests.get(CONFIG["URL"]["GOOGLE_GEOCODING_URL"], params=params).json()
 
 
-def _parse_response(response):
+def _parse_response(response: Dict) -> Tuple[str, float, float]:
     response_results = response["results"][0]
     _check_response(response_results)
     address = response_results["formatted_address"]
@@ -25,16 +26,20 @@ def _parse_response(response):
 
 
 def _check_response(result):
+    """
+    Check if the resulting address refers to a city and
+    is not too narrow (like street address) or too wide (like a country).
+    """
     types = result["types"]
     if "locality" not in types:
         raise LocalityError()
 
 
-def geocode(address):
+def geocode(address: str) -> Tuple[str, float, float]:
+    """
+    Geocodes free form address input.
+    """
     try:
-        response = _make_request(address)
-        return _parse_response(response)
-    except LocalityError as e:
-        raise e
+        return _parse_response(_make_request(address))
     except Exception:
         raise GeocodingError()

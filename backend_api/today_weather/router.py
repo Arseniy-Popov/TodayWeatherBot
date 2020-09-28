@@ -1,14 +1,14 @@
-from today_weather.views import LocalityView, LocalityForecastView 
-from today_weather.config import CONFIG
-from today_weather.exceptions import BaseCustomException
 from werkzeug.exceptions import HTTPException
+
+from today_weather.config import CONFIG
+from today_weather.views import LocalityForecastView, LocalityView
 
 
 def add_routes(app):
     """
     Register url rules and error handlers with the app.
     """
-    route_view(
+    _route_view(
         app=app,
         view=LocalityView,
         endpoint="localities",
@@ -32,7 +32,7 @@ def add_routes(app):
         return {"error": CONFIG["ERROR"]["GENERAL"]}, 500
 
 
-def route_view(
+def _route_view(
     app, view, endpoint, url, list_methods, detail_methods, pk="id", pk_type="int"
 ):
     """
