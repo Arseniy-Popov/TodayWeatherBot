@@ -1,4 +1,3 @@
-import argparse
 import logging
 
 import click
@@ -12,6 +11,9 @@ from today_weather.handlers import HandlerInput, HandlerWelcome
 @click.command()
 @click.option("--testing", default=False)
 def main(testing=False):
+    """
+    Starts the bot up, adds handlers.
+    """
     logging.basicConfig(level=logging.INFO)
     updater = Updater(get_token(testing), use_context=True)
     dispatcher = updater.dispatcher

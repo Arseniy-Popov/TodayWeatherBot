@@ -1,3 +1,8 @@
+"""
+Test the deployed app.
+"""
+
+
 import requests
 
 from today_weather.config import CONFIG

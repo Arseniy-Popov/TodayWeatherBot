@@ -153,6 +153,6 @@ class TestTodayWeather(unittest.TestCase):
         self._await_response()
         self._assertResponseContains("\u00B0C", self.default_address)
 
-
+        
 if __name__ == "__main__":
     unittest.main(verbosity=2)

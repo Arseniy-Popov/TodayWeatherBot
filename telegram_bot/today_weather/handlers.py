@@ -20,6 +20,7 @@ class HandlerBase(ABC):
         self.update = update
         self.context = context
         self.user_id = self.update.message.from_user.id
+        self.username = self.update.message.from_user.username
         self.user_message_text = self.update.message.text
         self.user = self.get_or_create_user(self.user_id)
         self.process()
@@ -58,7 +59,7 @@ class HandlerWelcome(HandlerBase):
 
 class HandlerInput(HandlerBase):
     def process(self) -> None:
-        logging.info(f"message from {self.user_id}: {self.user_message_text}")
+        logging.info(f"message from {self.user_id}, {self.username}: {self.user_message_text}")
         if self.user_message_text == CONFIG["KEYBOARD"]["REPEAT"]:
             self._reply_with_forecast(Locality(self.user.latest_locality_id))
         elif self.user_message_text == CONFIG["KEYBOARD"]["SET_DEFAULT"]:
