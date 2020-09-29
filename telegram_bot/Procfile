@@ -1,1 +1,1 @@
-worker: python -m today_weather.bot
+worker: python -m today_weather.bot --testing False

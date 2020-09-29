@@ -3,13 +3,19 @@ import logging
 import click
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
-from today_weather.config import get_token
+from today_weather.config import CONFIG, get_token
 from today_weather.exceptions import custom_exception_handler
-from today_weather.handlers import HandlerInput, HandlerWelcome
+from today_weather.handlers import (
+    HandlerAddressInput,
+    HandlerCommandGetDefault,
+    HandlerCommandRepeat,
+    HandlerCommandSetDefault,
+    HandlerWelcome,
+)
 
 
 @click.command()
-@click.option("--testing", default=False)
+@click.option("--testing", default=True)
 def main(testing=False):
     """
     Starts the bot up, adds handlers.
@@ -19,7 +25,16 @@ def main(testing=False):
     dispatcher = updater.dispatcher
     handlers = [
         CommandHandler("start", HandlerWelcome),
-        MessageHandler(Filters.text, HandlerInput),
+        MessageHandler(
+            Filters.regex(CONFIG["KEYBOARD"]["REPEAT"]), HandlerCommandRepeat
+        ),
+        MessageHandler(
+            Filters.regex(CONFIG["KEYBOARD"]["SET_DEFAULT"]), HandlerCommandSetDefault
+        ),
+        MessageHandler(
+            Filters.regex(CONFIG["KEYBOARD"]["GET_DEFAULT"]), HandlerCommandGetDefault
+        ),
+        MessageHandler(Filters.text, HandlerAddressInput),
     ]
     for handler in handlers:
         dispatcher.add_handler(handler)

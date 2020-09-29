@@ -139,7 +139,7 @@ class TestTodayWeather(unittest.TestCase):
         self._await_response()
         self._assertResponseContains("\u00B0C", self.address)
 
-    def test_set_default(self, address="Moscow"):
+    def test_set_default(self, address="London"):
         self.default_address = address
         self.test_address(self.default_address)
         self._send_message(CONFIG["KEYBOARD"]["SET_DEFAULT"])

@@ -47,17 +47,19 @@ def _get_weather(locality: Locality) -> WeatherForecast:
 
 
 class LocalityView(MethodView):
-    """
-    View for POST /localities and GET /localities/<id>.
-    """
-
     def get(self, id):
+        """
+        GET /localities/<id>
+        """
         locality = get_or_none(Locality, "id", id)
         if not locality:
             abort(status.HTTP_404_NOT_FOUND)
         return ({"locality": locality_schema.dump(locality)}, status.HTTP_200_OK)
 
     def post(self):
+        """
+        POST /localities
+        """
         locality, existed = _get_locality(request.json["address"])
         weather = _get_weather(locality)
         return (
@@ -70,11 +72,10 @@ class LocalityView(MethodView):
 
 
 class LocalityForecastView(MethodView):
-    """
-    View for GET /localities/<id>/forecast.
-    """
-
     def get(self, id):
+        """
+        GET /localities/<id>/forecast
+        """
         locality = get_or_none(Locality, "id", id)
         if not locality:
             abort(status.HTTP_404_NOT_FOUND)
