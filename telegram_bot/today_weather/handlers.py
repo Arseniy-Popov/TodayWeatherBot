@@ -15,41 +15,52 @@ from today_weather.utils.recommend import Recommender
 
 
 class HandlerBase(ABC):
+    """
+    Base class for update handlers.
+    
+    Upon receiving an update, the dispatcher passes the update and context
+    to the approproate registered update handler.
+    """
+
     def __init__(self, update, context):
-        self.set_up_db()
-        self.update = update
-        self.context = context
-        self.user_id = self.update.message.from_user.id
-        self.username = self.update.message.from_user.username
-        self.user_message_text = self.update.message.text
-        self.user = self.get_or_create_user(self.user_id)
+        """
+        Sets up a db session and attributes needed to process the update, 
+        processes the update, and then tears down the db session.
+        """
+        self._set_up_db_session()
+        self.update, self.context, self.message = (
+            update,
+            context,
+            update.message.text,
+        )
+        self.user = self._get_or_create_user(self.update.message.from_user.id)
         self.process()
-        self.tear_down_db()
+        self._tear_down_db_session()
 
     @abstractmethod
     def process(self):
         pass
 
-    def set_up_db(self):
+    def reply(self, **kwargs):
+        self.update.message.reply_text(**kwargs)
+        log_reply(self.user_id, kwargs)
+
+    def _set_up_db_session(self):
         engine = create_engine(DATABASE_URI)
         Session = sessionmaker(bind=engine)
         self.session = Session()
         Base.metadata.create_all(engine)
 
-    def tear_down_db(self):
+    def _tear_down_db_session(self):
         self.session.commit()
 
-    def get_or_create_user(self, id):
+    def _get_or_create_user(self, id):
         user = self.session.query(User).filter(User.id == id).one_or_none()
         if not user:
             user = User(id=id)
             self.session.add(user)
             self.session.commit()
         return user
-
-    def reply(self, **kwargs):
-        self.update.message.reply_text(**kwargs)
-        log_reply(self.user_id, kwargs)
 
 
 class HandlerWelcome(HandlerBase):
@@ -59,10 +70,12 @@ class HandlerWelcome(HandlerBase):
 
 class HandlerInput(HandlerBase):
     def process(self) -> None:
-        logging.info(f"message from {self.user_id}, {self.username}: {self.user_message_text}")
-        if self.user_message_text == CONFIG["KEYBOARD"]["REPEAT"]:
+        logging.info(
+            f"message from {self.user.id}, {self.update.message.from_user.username}: {self.message}"
+        )
+        if self.message == CONFIG["KEYBOARD"]["REPEAT"]:
             self._reply_with_forecast(Locality(self.user.latest_locality_id))
-        elif self.user_message_text == CONFIG["KEYBOARD"]["SET_DEFAULT"]:
+        elif self.message == CONFIG["KEYBOARD"]["SET_DEFAULT"]:
             self.user.default_locality_id, self.user.default_locality_name = (
                 self.user.latest_locality_id,
                 self.user.latest_locality_name,
@@ -71,10 +84,10 @@ class HandlerInput(HandlerBase):
                 text=f"{self.user.default_locality_name} {CONFIG['MESSAGES']['SET_DEFAULT_CONF']}",
                 reply_markup=self._keyboard(),
             )
-        elif CONFIG["KEYBOARD"]["GET_DEFAULT"] in self.user_message_text:
+        elif CONFIG["KEYBOARD"]["GET_DEFAULT"] in self.message:
             self._reply_with_forecast(Locality(self.user.default_locality_id))
         else:
-            self._reply_with_forecast(self.user_message_text)
+            self._reply_with_forecast(self.message)
 
     def _reply_with_forecast(self, locality: Union[str, int]) -> None:
         forecast, locality = self._get_forecast(locality)
