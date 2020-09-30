@@ -74,7 +74,7 @@ class OWMParser:
         Filters weather forecast data points for the current day.
         """
         today = dt.datetime.now(tz=self.timezone)
-        cutoff = today.replace(day=today.day + 1, hour=3)
+        cutoff = (today + dt.timedelta(days=1)).replace(hour=3)
         return [item for item in weather_data if item.dt_start < cutoff]
 
     def _aggregate_weather(self, weather_data: Iterable[self.WeatherDatum]) -> Dict:
