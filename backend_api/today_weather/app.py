@@ -34,6 +34,12 @@ def init_app(app):
     return app
 
 
+def run_app():
+    app = make_app()
+    app = init_app(app)
+    return app
+
+
 def init_db(app):
     """
     Creates a session and creates all tables if the db does not already have those.
@@ -45,6 +51,5 @@ def init_db(app):
 
 
 if __name__ == "__main__":
-    app = make_app()
-    app = init_app(app)
+    app = run_app()
     app.run(debug=True)

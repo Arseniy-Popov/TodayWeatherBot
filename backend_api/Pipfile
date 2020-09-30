@@ -20,6 +20,7 @@ flask-api = "*"
 gunicorn = "*"
 pyyaml = "*"
 pytest = "*"
+click = "*"
 
 [requires]
 python_version = "3.7"

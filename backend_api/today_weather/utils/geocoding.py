@@ -41,5 +41,5 @@ def geocode(address: str) -> Tuple[str, float, float]:
     """
     try:
         return _parse_response(_make_request(address))
-    except Exception:
-        raise GeocodingError()
+    except Exception as exception:
+        raise exception
