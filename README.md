@@ -17,4 +17,4 @@
 
 #### Sequence diagram for the backend API service
 
-![chart](/backend_api/docs/chart.png)
+![chart](/backend_api/docs/static/chart.png)

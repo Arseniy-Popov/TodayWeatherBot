@@ -4,7 +4,7 @@ volumes:
     static:
 services:
     db:
-        image: postgres:latest
+        image: postgres:12.0
         volumes:
             - postgres_data:/var/lib/postgresql/data/
         env_file:
@@ -12,20 +12,27 @@ services:
     web:
         build: ./
         image: today_weather:latest
-        volumes:
-            - static:/app/docs
-        expose:
-            - 8000
         depends_on:
             - db
+        volumes:
+            - static:/app/docs/static
+        expose:
+            - 8000
         env_file:
             - ./.env
     nginx:
         build: ./nginx
-        image: nginx:latest
-        ports:
-            - ${PORT}:80
+        image: nginx:1.19.2
         depends_on:
             - web
         volumes:
-            - static:/app/docs
+            - static:/app/docs/static
+        ports:
+            - ${PORT}:80
+    docs:
+        build: ./docs
+        image: docs:latest
+        depends_on:
+            - web
+        volumes:
+            - static:/app/docs/static
