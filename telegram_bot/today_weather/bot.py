@@ -16,7 +16,7 @@ from today_weather.handlers import (
 
 @click.command()
 @click.option("--testing", default=True)
-def main(testing=False):
+def main(testing):
     """
     Starts the bot up, adds handlers.
     """

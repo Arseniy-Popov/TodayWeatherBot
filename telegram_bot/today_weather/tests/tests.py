@@ -36,7 +36,7 @@ class TestTodayWeather(unittest.TestCase):
         )
         cls.app.start()
         # DB
-        if TEST_DB:
+        if TEST_DB and not TEST_DEPLOYED:
             cls.engine = create_engine(DATABASE_URI)
             cls.Session = sessionmaker(bind=cls.engine)
             cls.session = cls.Session()
@@ -83,7 +83,7 @@ class TestTodayWeather(unittest.TestCase):
             self.subprocess.kill()
             self.subprocess.wait()
         # drop tables
-        if TEST_DB:
+        if TEST_DB and not TEST_DEPLOYED:
             Base.metadata.drop_all(self.engine)
 
     # Utilities ------------------------------------------------------------------------
@@ -139,7 +139,7 @@ class TestTodayWeather(unittest.TestCase):
         self._await_response()
         self._assertResponseContains("\u00B0C", self.address)
 
-    def test_set_default(self, address="London"):
+    def test_set_default(self, address="Moscow"):
         self.default_address = address
         self.test_address(self.default_address)
         self._send_message(CONFIG["KEYBOARD"]["SET_DEFAULT"])

@@ -28,8 +28,8 @@ CITIES = [
     "San Francisco",
     "Wellington",
     "Melbourne",
-    "Tokyo",
-    "Seoul",
+    # "Tokyo",
+    # "Seoul",
 ]
 
 

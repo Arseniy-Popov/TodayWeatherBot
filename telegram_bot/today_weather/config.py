@@ -8,13 +8,13 @@ CONFIG = configparser.ConfigParser()
 CONFIG.read("config.ini")
 
 TEST_DB = True
-TEST_DEPLOYED = False
+TEST_DEPLOYED = True
 
 # Telegram -----------------------------------------------------------------------------
 
 
 def get_token(testing):
-    if not testing:
+    if testing == "False":
         return os.getenv("TELEGRAM_BOT_API_TOKEN")
     return os.getenv("TELEGRAM_BOT_API_TOKEN_TEST")
 
