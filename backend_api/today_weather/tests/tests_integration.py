@@ -13,6 +13,24 @@ from today_weather.models import Base
 
 FORECAST_KEYS = ["rain", "snow", "temp_min", "temp_max"]
 LOCALITY_KEYS = ["lat", "lng", "name", "links"]
+CITIES = [
+    "Moscow",
+    "Berlin",
+    "Warsaw",
+    "Berlin",
+    "Amsterdam",
+    "Paris",
+    "London",
+    "Lisbon",
+    "Toronto",
+    "New York",
+    "Los Angeles",
+    "San Francisco",
+    "Wellington",
+    "Melbourne",
+    "Tokyo",
+    "Seoul",
+]
 
 
 @pytest.fixture
@@ -74,6 +92,16 @@ def test_post_address_cached(client, monkeypatch):
 def test_post_address_multiple(client):
     test_post_address(client)
     test_post_address(client, address="new york", expected="New York", order=2)
+
+
+@pytest.mark.parametrize("address", CITIES)
+def test_post_address_cities(client, address):
+    response = client.post("/localities", json={"address": address})
+    assert response.status_code in (200, 201)
+    response = response.get_json()
+    assert_keys_match(response["forecast"], FORECAST_KEYS)
+    assert_keys_match(response["locality"], LOCALITY_KEYS)
+    assert address in response["locality"]["name"]
 
 
 # GET /localities/<id> -----------------------------------------------------------------

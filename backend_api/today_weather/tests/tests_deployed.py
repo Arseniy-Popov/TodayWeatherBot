@@ -8,7 +8,7 @@ import requests
 
 from today_weather.config import CONFIG
 
-from .tests_integration import FORECAST_KEYS, LOCALITY_KEYS, assert_keys_match
+from .tests_integration import CITIES, FORECAST_KEYS, LOCALITY_KEYS, assert_keys_match
 
 
 URL = CONFIG["TESTS"]["URL_DEPLOYED"]
@@ -27,20 +27,7 @@ def test_get_locality_forecast():
     assert_keys_match(response["locality"], LOCALITY_KEYS)
 
 
-@pytest.mark.parametrize(
-    "address",
-    [
-        "Moscow",
-        "Berlin",
-        "Warsaw",
-        "Berlin",
-        "Amsterdam",
-        "Paris",
-        "London",
-        "Lisbon",
-        "Toronto",
-    ],
-)
+@pytest.mark.parametrize("address", CITIES)
 def test_post_address(address):
     response = requests.post(URL + "/localities", json={"address": address})
     assert response.status_code in (200, 201)
